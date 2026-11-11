@@ -1,0 +1,12 @@
+.git
+.github
+.idea
+.next
+.npmrc
+.vercel
+coverage
+node_modules
+out
+**/.env*
+**/*.pem
+*.tsbuildinfo

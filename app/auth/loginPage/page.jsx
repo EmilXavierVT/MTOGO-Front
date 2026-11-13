@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { API_BASE } from "../../../utils/api";
+import { API_BASE } from "../../utils/api";
 
 function LoginPage() {
     const [email, setEmail] = useState('')
@@ -20,23 +20,48 @@ function LoginPage() {
         setLoading(true)
 
         try {
-            const response = await fetch(`${API_BASE}/users/auth/login`, {
+            const response = await fetch(`${API_BASE}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
             })
 
+            console.log('Login status:', response.status)
+
+            /*
             if (!response.ok) {
-                setError(`Login failed (${response.status})`)
+                const errorResponse = await response.text()
+
+                let errorMessage = errorResponse
+                try {
+                    const data = JSON.parse(errorResponse)
+                    errorMessage = data.error || data.message || errorResponse
+                } catch {
+                    // Backend returned plain text
+                }
+
+                console.error('Login failed:', response.status, errorMessage)
+                setError(errorMessage || `Login failed (${response.status})`)
+                return
+            }
+            */
+
+            const result = await response.json()
+            const token = result.token ?? result.data?.token
+
+            if (!token) {
+                console.error('Login response did not contain a token')
+                setError(result.error || 'Login response did not contain a token')
                 return
             }
 
-            const result = await response.json()
+            const storage = remember ? localStorage : sessionStorage
+            storage.setItem('token', token)
 
-            // saveSession(result.data.token, result.data.data, remember)
             router.push('/homepage')
         }
-        catch {
+        catch (err) {
+            console.error('Login request failed:', err)
             setError('Server is currently unavailable')
         }
         finally {

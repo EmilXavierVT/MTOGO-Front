@@ -1,15 +1,17 @@
+
 "use client";
 import { useState } from 'react'
-import { API_BASE } from "../../../utils/api";
+import { API_BASE } from "../../utils/api";
 
 function RegisterPage() {
     const [form, setForm] = useState({
         name: '',
         email: '',
-        passwordHash: '' 
+        password: ''
     })
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
+    const [success, setSuccess] = useState('')
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value })
@@ -17,84 +19,87 @@ function RegisterPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
+        setError('')
+        setSuccess('')
         setLoading(true)
 
-        try{
-const response = await fetch(`${API_BASE}/users/auth/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(form),
-})
+        try {
+            const response = await fetch(`${API_BASE}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(form),
+            })
 
-if(!response.ok) {
-    const errorResponse = await response.text()
-    setError(errorResponse || 'Registration failed')
-    return
-}
+            if (!response.ok) {
+                const errorResponse = await response.text()
+                setError(errorResponse || 'Registration failed')
+                return
+            }
 
-//const result = await response.json()
-//navigate
-} 
-catch{
-    setError('Server is currently unavailable') 
-
+            setSuccess('Account created successfully')
+            setForm({
+                name: '',
+                email: '',
+                password: ''
+            })
         }
-        finally{
+        catch {
+            setError('Server is currently unavailable')
+        }
+        finally {
             setLoading(false)
         }
     }
 
-    return(
+    return (
+        <form onSubmit={handleSubmit}>
+            <div>
+                <h1>Create account</h1>
 
-    <form onSubmit={handleSubmit}>
-<div>
-     <h1>Create account</h1>
+                <div>
+                    <label htmlFor="name">Name</label>
+                    <input
+                        id="name"
+                        name="name"
+                        type="text"
+                        value={form.name}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
 
-     <div>
-        <label htmlFor="name">Name</label>
-        <input 
-        id= "name" 
-        name="name"
-        type="text"
-        value={form.name}
-        onChange={handleChange}
-        required
-        />
-     </div>
-    
-     <div>
-        <label htmlFor="email">E-mail adress</label>
-        <input 
-        id="email"
-        name="email"
-        type="text"
-        value={form.email}
-        onChange={handleChange}
-        required 
-        />
-     </div>
+                <div>
+                    <label htmlFor="email">E-mail address</label>
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={form.email}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
 
-<div>
-<label htmlFor="passwordHash">Password</label>
-<input 
-id="parswordHash"
-name="passwordHash"
-type="text"
-value={form.passwordHash} 
-onChange={handleChange}
-required
-/>
-</div>
+                <div>
+                    <label htmlFor="password">Password</label>
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        value={form.password}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
 
-{error && <p>{error}</p>}
+                {error && <p>{error}</p>}
+                {success && <p>{success}</p>}
 
-<button type="submit" disabled={loading}>
-    {loading ? 'Creating account...' : 'Register'}
-
-</button>
-
-</div>
-</form>
+                <button type="submit" disabled={loading}>
+                    {loading ? 'Creating account...' : 'Register'}
+                </button>
+            </div>
+        </form>
     )
 }
 

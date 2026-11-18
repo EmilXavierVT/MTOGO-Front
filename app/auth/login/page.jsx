@@ -3,14 +3,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { API_BASE } from "../../utils/api";
+import { ROLE_HOMEPAGE } from "../../utils/roles";
 import styles from "./loginPage.module.css";
 
-const ROLE_HOMEPAGE = {
-  CUSTOMER: "/customer",
-  COURIER: "/courier",
-  ADMIN: "/admin",
-  RESTAURANT_OWNER: "/restaurant-owner",
-};
 
 function LoginPage() {
   const [email, setEmail] = useState("");

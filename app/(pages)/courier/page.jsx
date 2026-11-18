@@ -1,27 +1,16 @@
 "use client";
-
-import { useEffect } from "react";
 import LogoutButton from "../../components/LogoutButton";
-import { useRouter } from "next/navigation";
+import RequireRole from "../../components/RequireRole";
 
 function CourierPage() {
-  const router = useRouter();
-
-  useEffect(() => {
-    const token =
-      localStorage.getItem("token") || sessionStorage.getItem("token");
-
-    if (!token) {
-      router.replace("/auth/login");
-    }
-  }, [router]);
-
   return (
-    <main>
-      <h1>Courier</h1>
+    <RequireRole role="COURIER">
+      <main>
+        <h1>Courier</h1>
 
-      <LogoutButton />
-    </main>
+        <LogoutButton />
+      </main>
+    </RequireRole>
   );
 }
 

@@ -20,7 +20,7 @@ function HomePage() {
             sessionStorage.getItem("token");
 
         if (!token) {
-            router.replace("/auth/loginPage");
+            router.replace("/auth/login");
         }
     }, [router]);
 

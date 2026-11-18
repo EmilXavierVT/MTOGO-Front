@@ -4,11 +4,11 @@ function LinkBar() {
   return (
     <nav>
       <div>
-        <Link href="/auth/registerPage">Register</Link>
+        <Link href="/auth/register">Register</Link>
       </div>
 
       <div>
-        <Link href="/auth/loginPage">Login</Link>
+        <Link href="/auth/login">Login</Link>
       </div>
     </nav>
   );

@@ -6,12 +6,11 @@ import { API_BASE } from "../../utils/api";
 import styles from "./loginPage.module.css";
 
 const ROLE_HOMEPAGE = {
-CUSTOMER: "/customer",
-COURIER: "/courier",
-ADMIN: "/admin",
-RESTAURANT_OWNER: "/restaurant-owner"
-}
-
+  CUSTOMER: "/customer",
+  COURIER: "/courier",
+  ADMIN: "/admin",
+  RESTAURANT_OWNER: "/restaurant-owner",
+};
 
 function LoginPage() {
   const [email, setEmail] = useState("");
@@ -47,7 +46,13 @@ function LoginPage() {
         return;
       }
 
+      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
+      localStorage.removeItem("role");
+      sessionStorage.removeItem("role");
+
       const storage = remember ? localStorage : sessionStorage;
+
       storage.setItem("token", token);
       storage.setItem("role", result.user.role);
 

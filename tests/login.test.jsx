@@ -33,21 +33,27 @@ async function login(email, password, remember = true) {
 describe("LoginPage", () => {
   beforeEach(() => push.mockClear());
 
-  it.each([
+  const roles = [
     ["CUSTOMER", "/customer"],
     ["COURIER", "/courier"],
     ["RESTAURANT_OWNER", "/restaurant-owner"],
     ["ADMIN", "/admin"],
-  ])("sends %s to %s after login", async (role, path) => {
-    mockLoginResponse(200, { token: "t", user: { role } });
-    await login("a@test.dk", "password123");
-    expect(push).toHaveBeenCalledWith(path);
-  });
+  ];
+
+  for (const [role, path] of roles) {
+    it(`sends ${role} to ${path} after login`, async () => {
+      mockLoginResponse(200, { token: "t", user: { role } });
+      await login("a@test.dk", "password123");
+      expect(push).toHaveBeenCalledWith(path);
+    });
+  }
 
   it("shows an error and stores nothing when credentials aren't valid", async () => {
     mockLoginResponse(401, { error: "Invalid email or password" });
     await login("a@test.dk", "wrong");
-    expect(await screen.findByText("Invalid email or password")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Invalid email or password"),
+    ).toBeInTheDocument();
     expect(push).not.toHaveBeenCalled();
     expect(localStorage.getItem("token")).toBeNull();
   });
@@ -55,7 +61,10 @@ describe("LoginPage", () => {
   it("replaces the remembered account when a new user logs in", async () => {
     localStorage.setItem("token", "admin-token");
     localStorage.setItem("role", "ADMIN");
-    mockLoginResponse(200, { token: "customer-token", user: { role: "CUSTOMER" } });
+    mockLoginResponse(200, {
+      token: "customer-token",
+      user: { role: "CUSTOMER" },
+    });
 
     await login("c@test.dk", "password123", false);
 

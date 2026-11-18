@@ -5,6 +5,14 @@ import { useRouter } from "next/navigation";
 import { API_BASE } from "../../utils/api";
 import styles from "./loginPage.module.css";
 
+const ROLE_HOMEPAGE = {
+CUSTOMER: "/customer",
+COURIER: "/courier",
+ADMIN: "/admin",
+RESTAURANT_OWNER: "/restaurant-owner"
+}
+
+
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,7 +51,7 @@ function LoginPage() {
       storage.setItem("token", token);
       storage.setItem("role", result.user.role);
 
-      router.push("/pages/homepage");
+      router.push(ROLE_HOMEPAGE[result.user.role] ?? "/");
     } catch (err) {
       console.error("Login request failed:", err);
       setError("Server is currently unavailable");
@@ -98,7 +106,7 @@ function LoginPage() {
       </form>
 
       <p>
-        No account yet? <Link href="/auth/registerPage">Register</Link>
+        No account yet? <Link href="/auth/register">Register</Link>
       </p>
     </div>
   );

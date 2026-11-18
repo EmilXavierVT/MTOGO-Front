@@ -10,7 +10,7 @@ function LogoutButton() {
     localStorage.removeItem("role");
     sessionStorage.removeItem("role");
 
-    router.replace("/login");
+    router.replace("/auth/login");
   };
 
   return (

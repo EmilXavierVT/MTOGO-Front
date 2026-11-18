@@ -4,7 +4,7 @@ import RequiredRole from "../../components/RequiredRole";
 
 function RestaurantOwnerPage() {
   return (
-    <RequiredRole role="ADMIN">
+    <RequiredRole role="RESTAURANT_OWNER">
       <main>
         <h1>RestaurantOwner</h1>
 

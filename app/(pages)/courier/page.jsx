@@ -1,16 +1,16 @@
 "use client";
 import LogoutButton from "../../components/LogoutButton";
-import RequireRole from "../../components/RequireRole";
+import RequiredRole from "../../components/RequiredRole";
 
 function CourierPage() {
   return (
-    <RequireRole role="COURIER">
+    <RequiredRole role="COURIER">
       <main>
         <h1>Courier</h1>
 
         <LogoutButton />
       </main>
-    </RequireRole>
+    </RequiredRole>
   );
 }
 

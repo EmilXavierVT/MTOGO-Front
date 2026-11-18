@@ -1,16 +1,16 @@
 "use client";
 import LogoutButton from "../../components/LogoutButton";
-import RequireRole from "../../components/RequireRole";
+import RequiredRole from "../../components/RequiredRole";
 
 function CustomerPage() {
   return (
-    <RequireRole role="CUSTOMER">
+    <RequiredRole role="CUSTOMER">
       <main>
         <h1>Customer</h1>
 
         <LogoutButton />
       </main>
-    </RequireRole>
+    </RequiredRole>
   );
 }
 

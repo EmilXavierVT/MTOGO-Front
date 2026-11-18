@@ -11,7 +11,7 @@ function clearSession() {
   sessionStorage.removeItem("role");
 }
 
-function RequireRole({ role, children }) {
+function RequiredRole({ role, children }) {
   const [allowed, setAllowed] = useState(false);
   const router = useRouter();
 
@@ -55,4 +55,4 @@ function RequireRole({ role, children }) {
   return children;
 }
 
-export default RequireRole;
+export default RequiredRole;

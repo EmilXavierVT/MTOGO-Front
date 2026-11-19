@@ -1,0 +1,109 @@
+.container {
+  width: 100%;
+  max-width: 640px;
+  margin: 24px 0;
+  color: #25332e;
+}
+
+.container button {
+  padding: 11px 20px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.createButton {
+  background: #226449;
+  color: #fff;
+}
+
+.createButton:hover {
+  background: #194d38;
+}
+
+.form {
+  display: grid;
+  gap: 20px;
+  margin-top: 20px;
+  padding: clamp(20px, 5vw, 32px);
+  border: 1px solid #dce5df;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 8px 28px rgb(25 55 40 / 7%);
+}
+
+.form h2 {
+  margin: 0 0 4px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.form > div {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.form label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.form input:not([type="checkbox"]),
+.form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 11px 13px;
+  border: 1px solid #cbd7cf;
+  border-radius: 8px;
+  background: #fafcfb;
+  color: #25332e;
+  font: inherit;
+}
+
+.form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.form input:focus-visible,
+.form textarea:focus-visible,
+.container button:focus-visible {
+  outline: 3px solid #a5d5bc;
+  outline-offset: 3px;
+}
+
+.form .checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.checkboxLabel input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #226449;
+}
+
+.form p {
+  margin: 0;
+  color: #63736a;
+  font-size: 0.875rem;
+}
+
+.cancelButton {
+  justify-self: start;
+  background: #edf2ef;
+  color: #354c3f;
+}
+
+.cancelButton:hover {
+  background: #dfe9e3;
+}

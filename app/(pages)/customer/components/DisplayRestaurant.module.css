@@ -1,0 +1,122 @@
+.page {
+  min-height: 100vh;
+  padding: clamp(24px, 5vw, 64px) clamp(16px, 4vw, 48px);
+  background: #f4f7f5;
+  color: #25332e;
+}
+
+.content {
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid #dce5df;
+}
+
+.restaurantsBar {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 20px 3px;
+}
+
+.menuContent {
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+}
+
+.menuContent > :last-child {
+  margin-top: 0;
+}
+
+@media (max-width: 760px) {
+  .menuContent {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.restaurantButton {
+  flex-shrink: 0;
+  padding: 10px 18px;
+  border: 1px solid #cbd7cf;
+  border-radius: 10px;
+  background: #fff;
+  color: #354c3f;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.restaurantButton:hover {
+  background: #e8efeb;
+}
+
+.restaurantButton[aria-pressed="true"] {
+  background: #226449;
+  border-color: #226449;
+  color: #fff;
+}
+
+.restaurantButton:focus-visible {
+  outline: 3px solid #a5d5bc;
+  outline-offset: 3px;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: #226449;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+}
+
+.description {
+  margin: 12px 0 0;
+  max-width: 480px;
+  color: #63736a;
+  line-height: 1.6;
+}
+
+.logout button {
+  padding: 10px 18px;
+  border: 1px solid #cbd7cf;
+  border-radius: 10px;
+  background: #fff;
+  color: #354c3f;
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.logout button:hover {
+  background: #e8efeb;
+}
+
+.logout button:focus-visible {
+  outline: 3px solid #a5d5bc;
+  outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+  }
+}

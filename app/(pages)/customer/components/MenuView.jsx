@@ -8,28 +8,45 @@ const priceFormat = new Intl.NumberFormat("da-DK", {
 export default function MenuView({ menu, onAddToCart }) {
   return (
     <section className={styles.box} aria-labelledby={`menu-${menu.id}`}>
-      <h2 id={`menu-${menu.id}`}>Retter</h2>
-      <p className={styles.menuName}>{menu.name}</p>
+      <h3 id={`menu-${menu.id}`} className={styles.menuName}>
+        {menu.name}
+      </h3>
       {menu.products.length === 0 ? (
-        <p className={styles.empty}>No dishes from this menu yet.</p>
+        <p className={styles.empty}>No dishes in this menu yet.</p>
       ) : (
         <ul className={styles.list}>
           {menu.products.map((dish) => (
-            <li key={dish.id}>
-              <button type="button" className={styles.dish}
-                disabled={!dish.available}
-                onClick={() => onAddToCart(dish)}>
+            <li
+              key={dish.id}
+              className={
+                dish.available
+                  ? styles.dish
+                  : `${styles.dish} ${styles.unavailableDish}`
+              }
+            >
               <div className={styles.details}>
                 <span className={styles.name}>{dish.nameDa}</span>
-                <span className={styles.price}>
-                  {priceFormat.format(dish.priceDkkInclVat)}
-                </span>
+                {dish.descriptionDa && (
+                  <span className={styles.description}>
+                    {dish.descriptionDa}
+                  </span>
+                )}
               </div>
-              <span className={`${styles.badge} ${dish.available ? styles.available : styles.unavailable}`}>
-                <span aria-hidden="true">●</span>
-                {dish.available ? "Tilgængelig" : "Utilgængelig"}
+              <span className={styles.price}>
+                {priceFormat.format(dish.priceDkkInclVat)}
               </span>
-              </button>
+              {dish.available ? (
+                <button
+                  type="button"
+                  className={styles.addButton}
+                  aria-label={`Add ${dish.nameDa} to cart`}
+                  onClick={() => onAddToCart(dish)}
+                >
+                  +
+                </button>
+              ) : (
+                <span className={styles.badge}>Sold out</span>
+              )}
             </li>
           ))}
         </ul>

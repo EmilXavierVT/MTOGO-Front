@@ -4,6 +4,11 @@ import { getRestaurants, getRestaurantMenus } from "../api";
 import MenuView from "./MenuView";
 import styles from "./DisplayRestaurant.module.css";
 
+const priceFormat = new Intl.NumberFormat("da-DK", {
+  style: "currency",
+  currency: "DKK",
+});
+
 export default function DisplayRestaurant() {
   const [restaurants, setRestaurants] = useState([]);
   const [selectedRestaurantId, setSelectedRestaurantId] = useState(null);
@@ -46,42 +51,52 @@ export default function DisplayRestaurant() {
     }
   }
 
-  function addToCart(dish){
+  function addToCart(dish) {
     if (cart.length > 0 && cart[0].restaurantId !== selectedRestaurantId) {
-  setCartError("You can only order from one restaurant in a order. Please empty cart to select menus from an other retaurant.");
-  return;
-}
-setCartError("");
-
-const existingItems = cart.find((item) => item.dish.id === dish.id);
-
-if(existingItems){
-  const updatedCart = cart.map((item) => {
-    if(item.dish.id === dish.id){
-      return {...item, quantity: item.quantity + 1 };
-  }
-  return item;
-});
-    setCart(updatedCart);
-  }else{
-    setCart([...cart, {dish, quantity: 1, restaurantId: selectedRestaurantId }]);
-  }
-  }
-  
-function changeQuantity(dishId, change){
-  const updated = cart.map((item) => {
-    if(item.dish.id === dishId){
-      return {...item, quantity: item.quantity + change };
+      setCartError(
+        "You can only order from one restaurant per order. Please empty the cart to order from another restaurant.",
+      );
+      return;
     }
-    return item;
-  });
-  setCart(updated.filter((item) => item.quantity > 0));
-}
+    setCartError("");
 
-let total = 0;
-for(const item of cart){
-  total += item.dish.priceDkkInclVat*item.quantity;
-}
+    const existingItem = cart.find((item) => item.dish.id === dish.id);
+
+    if (existingItem) {
+      const updatedCart = cart.map((item) => {
+        if (item.dish.id === dish.id) {
+          return { ...item, quantity: item.quantity + 1 };
+        }
+        return item;
+      });
+      setCart(updatedCart);
+    } else {
+      setCart([
+        ...cart,
+        { dish, quantity: 1, restaurantId: selectedRestaurantId },
+      ]);
+    }
+  }
+
+  function changeQuantity(dishId, change) {
+    const updatedCart = cart.map((item) => {
+      if (item.dish.id === dishId) {
+        return { ...item, quantity: item.quantity + change };
+      }
+      return item;
+    });
+    setCart(updatedCart.filter((item) => item.quantity > 0));
+  }
+
+  function emptyCart() {
+    setCart([]);
+    setCartError("");
+  }
+
+  let total = 0;
+  for (const item of cart) {
+    total += item.dish.priceDkkInclVat * item.quantity;
+  }
 
   if (loading) return <p role="status">Loading restaurants...</p>;
   if (error) return <p role="alert">{error}</p>;
@@ -92,55 +107,104 @@ for(const item of cart){
   );
 
   return (
-    
-    <section aria-label="Restaurants">
-      <div
-        className={styles.restaurantsBar}
-        role="group"
-        aria-label="Select a restaurant"
-      >
-        {restaurants.map((restaurant) => (
-          <button
-            key={restaurant.id}
-            type="button"
-            className={styles.restaurantButton}
-            aria-pressed={restaurant.id === selectedRestaurantId}
-          onClick={() => selectRestaurant(restaurant.id)}
-            
-          >
-            {restaurant.address}
-          </button>
-        ))}  
-      </div>
+    <section className={styles.container} aria-label="Restaurants">
+      <h2 className={styles.sectionTitle}>Restaurants</h2>
 
-      {selectedRestaurant && (
-        <div className={styles.displayedRestaurant}>
-         {menus.map((menu) => (
-  <MenuView key={menu.id} menu={menu} onAddToCart={addToCart} />
-))}
-        </div>
-      )}
-      <aside aria-label="Cart">
-  <h2>Cart</h2>
-  {cartError && <p role="alert">{cartError}</p>}
-  {cart.length === 0 ? (
-    <p>Your cart is empty.</p>
-  ) : (
-    <>
-      <ul>
-        {cart.map((item) => (
-          <li key={item.dish.id}>
-            {item.dish.nameDa} – {item.dish.priceDkkInclVat} kr. × {item.quantity}
-            <button type="button" onClick={() => changeQuantity(item.dish.id, -1)}>−</button>
-            <button type="button" onClick={() => changeQuantity(item.dish.id, 1)}>+</button>
+      <ul className={styles.restaurantList}>
+        {restaurants.map((restaurant) => (
+          <li key={restaurant.id}>
+            <button
+              type="button"
+              className={styles.restaurantCard}
+              aria-pressed={restaurant.id === selectedRestaurantId}
+              onClick={() => selectRestaurant(restaurant.id)}
+            >
+              <span className={styles.restaurantInfo}>
+                <span className={styles.restaurantName}>
+                  {restaurant.address}
+                </span>
+                {restaurant.rating != null && (
+                  <span className={styles.restaurantRating}>
+                    Rating {restaurant.rating}
+                  </span>
+                )}
+              </span>
+              <span className={styles.chevron} aria-hidden="true">
+                ›
+              </span>
+            </button>
           </li>
         ))}
       </ul>
-      <p><strong>Total: {total} kr.</strong></p>
-      <button type="button" onClick={() => { setCart([]); setCartError(""); }}>Empty cart</button>
-    </>
-  )}
-</aside>
+
+      <div className={styles.orderLayout}>
+        <div className={styles.menus}>
+          {selectedRestaurant ? (
+            menus.map((menu) => (
+              <MenuView key={menu.id} menu={menu} onAddToCart={addToCart} />
+            ))
+          ) : (
+            <p className={styles.hint}>Select a restaurant to see the menu.</p>
+          )}
+        </div>
+
+        <aside className={styles.cart} aria-label="Cart">
+          <h2>Order</h2>
+          {cartError && (
+            <p className={styles.cartError} role="alert">
+              {cartError}
+            </p>
+          )}
+          {cart.length === 0 ? (
+            <p className={styles.empty}>Your cart is empty.</p>
+          ) : (
+            <>
+              <ul className={styles.cartList}>
+                {cart.map((item) => (
+                  <li key={item.dish.id} className={styles.cartItem}>
+                    <span className={styles.itemName}>{item.dish.nameDa}</span>
+                    <div className={styles.quantityControls}>
+                      <button
+                        type="button"
+                        className={styles.quantityButton}
+                        aria-label={`Remove one ${item.dish.nameDa}`}
+                        onClick={() => changeQuantity(item.dish.id, -1)}
+                      >
+                        −
+                      </button>
+                      <span className={styles.quantity}>{item.quantity}</span>
+                      <button
+                        type="button"
+                        className={styles.quantityButton}
+                        aria-label={`Add one ${item.dish.nameDa}`}
+                        onClick={() => changeQuantity(item.dish.id, 1)}
+                      >
+                        +
+                      </button>
+                    </div>
+                    <span className={styles.itemPrice}>
+                      {priceFormat.format(
+                        item.dish.priceDkkInclVat * item.quantity,
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className={styles.total}>
+                <span>Total incl. VAT</span>
+                <span>{priceFormat.format(total)}</span>
+              </p>
+              <button
+                type="button"
+                className={styles.emptyCartButton}
+                onClick={emptyCart}
+              >
+                Empty cart
+              </button>
+            </>
+          )}
+        </aside>
+      </div>
     </section>
   );
 }

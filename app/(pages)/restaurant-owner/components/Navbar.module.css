@@ -1,0 +1,144 @@
+.navbar {
+  background: var(--color-white);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.navbarContainer {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  max-width: 65rem;
+  margin: 0 auto;
+  padding: 1rem 0;
+}
+
+.smallIconTextContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-green);
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.smallIconTextContainer svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0.25rem;
+  border-radius: 0.4rem;
+  background: var(--color-red);
+  stroke: var(--color-white);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.navigationLink,
+.menuButton,
+.logoutContainer button {
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  color: var(--color-green);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.navigationLink {
+  background: var(--color-light-green);
+}
+
+.logoutContainer {
+  margin-left: auto;
+}
+
+.logoutContainer button {
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+}
+
+.menuHeaderContainer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.menuBar {
+  display: flex;
+  flex: 1;
+  gap: 0.5rem;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 0.25rem;
+}
+
+.menuButton {
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+}
+
+.menuButton[aria-pressed="true"] {
+  border-color: var(--color-green);
+  background: var(--color-light-green);
+  color: var(--color-green);
+}
+
+.createDishContainer,
+.createDishContainer > div {
+  display: contents;
+}
+
+.createDishContainer > div > button {
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  background: var(--color-green);
+  color: var(--color-white);
+  cursor: pointer;
+}
+
+.createDishContainer form {
+  flex-basis: 100%;
+  order: 1;
+}
+
+.menuButton:not([aria-pressed="true"]):hover,
+.logoutContainer button:hover {
+  background: var(--color-light-green);
+  color: var(--color-green);
+}
+
+.menuButton:active,
+.menuButton[aria-pressed="true"],
+.menuButton[aria-pressed="true"]:hover,
+.logoutContainer button:active,
+.createDishContainer > div > button:active {
+  background: var(--color-light-green);
+  color: var(--color-green);
+}
+
+.navbar a:focus-visible,
+.navbar button:focus-visible,
+.menuButton:focus-visible {
+  outline: 2px solid var(--color-green);
+  outline-offset: 3px;
+}
+
+@media (max-width: 70rem) {
+  .navbarContainer {
+    margin: 0 4%;
+  }
+}
+
+@media (max-width: 40rem) {
+  .navbarContainer {
+    gap: 1rem;
+  }
+}

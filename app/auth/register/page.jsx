@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { API_BASE } from "../../utils/api";
 import styles from "./registerPage.module.css";
 
@@ -50,16 +51,31 @@ function RegisterPage() {
   };
 
   return (
-    <div className={styles.container}>
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <h1>Create account</h1>
+    <main className={styles.page}>
+      <div className={styles.leftContainer}>
+        <div className={styles.smallIconTextContainer}>
+          <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M18 46 46 18M18 18h28v28" /></svg>
+          <span>MTOGO</span>
+        </div>
+        <div className={styles.largeIconTextContainer}>
+          <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M18 46 46 18M18 18h28v28" /></svg>
+          <h1>Bestil fra dit kvarter.</h1>
+        </div>
+      </div>
+
+      <div className={styles.rightContainer}>
+      <form className={styles.credentialsContainer} onSubmit={handleSubmit}>
+        <h2>Opret kundekonto</h2>
+        <p>Opret en konto for at bestille og følge dine ordrer.</p>
 
         <div>
-          <label htmlFor="name">Name</label>
+          <label htmlFor="name">Fulde navn</label>
           <input
             id="name"
             name="name"
             type="text"
+            autoComplete="name"
+            placeholder="Dit navn"
             value={form.name}
             onChange={handleChange}
             required
@@ -67,11 +83,13 @@ function RegisterPage() {
         </div>
 
         <div>
-          <label htmlFor="email">E-mail address</label>
+          <label htmlFor="email">E-mail</label>
           <input
             id="email"
             name="email"
             type="email"
+            autoComplete="email"
+            placeholder="navn@eksempel.dk"
             value={form.email}
             onChange={handleChange}
             required
@@ -79,25 +97,29 @@ function RegisterPage() {
         </div>
 
         <div>
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password">Adgangskode</label>
           <input
             id="password"
             name="password"
             type="password"
+            autoComplete="new-password"
+            placeholder="Vælg en adgangskode"
             value={form.password}
             onChange={handleChange}
             required
           />
         </div>
 
-        {error && <p className={styles.error}>{error}</p>}
-        {success && <p className={styles.success}>{success}</p>}
+        {error && <p className={styles.error} role="alert">{error}</p>}
+        {success && <p className={styles.success} role="status">{success}</p>}
 
         <button type="submit" disabled={loading}>
-          {loading ? "Creating account..." : "Register"}
+          {loading ? "Opretter konto..." : "Opret konto"}
         </button>
+        <p>Har du allerede en konto? <Link href="/auth/login">Log ind</Link></p>
       </form>
-    </div>
+      </div>
+    </main>
   );
 }
 

@@ -61,16 +61,30 @@ function LoginPage() {
   };
 
   return (
-    <div className={styles.container}>
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <h1>Log in</h1>
+    <main className={styles.page}>
+      <div className={styles.leftContainer}>
+        <div className={styles.smallIconTextContainer}>
+          <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M18 46 46 18M18 18h28v28" /></svg>
+          <span>MTOGO</span>
+        </div>
+        <div className={styles.largeIconTextContainer}>
+          <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M18 46 46 18M18 18h28v28" /></svg>
+          <h1>Bestil fra dit kvarter.</h1>
+        </div>
+      </div>
+
+      <div className={styles.rightContainer}>
+      <form className={styles.credentialsContainer} onSubmit={handleSubmit}>
+        <h2>Log ind</h2>
 
         <div>
-          <label htmlFor="email">E-mail address</label>
+          <label htmlFor="email">E-mail</label>
           <input
             id="email"
             name="email"
             type="email"
+            autoComplete="email"
+            placeholder="sara@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -78,37 +92,38 @@ function LoginPage() {
         </div>
 
         <div>
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password">Adgangskode</label>
           <input
             id="password"
             name="password"
             type="password"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
 
-        <label>
+        <label className={styles.rememberContainer}>
           <input
             type="checkbox"
             checked={remember}
             onChange={(e) => setRemember(e.target.checked)}
           />
-          Remember me on this device
+          Husk mig på denne enhed
         </label>
 
-        {error && <p>{error}</p>}
+        {error && <p className={styles.error} role="alert">{error}</p>}
 
         <button type="submit" disabled={loading}>
-          {loading ? "Logging in..." : "Log in"}
+          {loading ? "Logger ind..." : "Log ind"}
         </button>
-      </form>
-
       <p>
-        No account yet? <Link href="/auth/register">Register</Link>
+        Ny på MTOGO? <Link href="/auth/register">Opret kundekonto</Link>
       </p>
-    </div>
+      </form>
+      </div>
+    </main>
   );
 }
 

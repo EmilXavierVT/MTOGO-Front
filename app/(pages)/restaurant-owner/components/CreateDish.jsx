@@ -39,7 +39,11 @@ function CreateDish({ menuId, onDishCreated}) {
     try {
       await createDish(menuId, dish);
       setShowCreateForm(false);
-      await onDishCreated();
+      try{
+        await onDishCreated();
+      } catch {
+          setError("Dish saved, but could not be refreshed. Reload the page.")
+      }
     } catch (error) {
       setError(error.message || "Could not create dish");
     } finally {

@@ -25,13 +25,22 @@ export default function EditDish({ menuId, dish, onDishUpdated, onClose }) {
         priceDkkInclVat: Number(values.get("priceDkkInclVat")),
         available: values.has("available"),
       });
-      await onDishUpdated();
+      
       setSaved(true);
-    } catch (error) {
+      try{
+      await onDishUpdated();
+      }
+      catch {
+        setError("Dish saved, but the list could not be refreshed. Reload the page.");
+      }
+    } 
+    catch (error) {
       setError(error.message || "Could not save dish");
     } finally {
       setLoading(false);
     }
+
+    
   }
 
   return (

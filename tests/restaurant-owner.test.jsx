@@ -42,6 +42,7 @@ function mockOwnerRequests() {
 
 async function fillCreateForm(user) {
   await user.click(await screen.findByRole("button", { name: "Create new dish" }));
+  expect(screen.getByRole("dialog", { name: "Create new dish" })).toHaveAttribute("open");
   await user.type(screen.getByLabelText("Dish name (Danish)"), "Soup");
   await user.type(screen.getByLabelText("Description (Danish)"), "Tomato soup");
   await user.type(screen.getByLabelText("Price (DKK, including VAT)"), "49.50");
@@ -153,7 +154,7 @@ describe("Restaurant owner menu management", () => {
     vi.stubGlobal("fetch", fetch);
     render(<RestaurantOwnerPage />);
     await waitFor(() => expect(replace).toHaveBeenCalledWith(path));
-    expect(screen.queryByRole("heading", { name: "Manage your menu" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Manage menus" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Create new dish" })).not.toBeInTheDocument();
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(fetch).toHaveBeenCalledWith("/api/auth/me", { headers: { Authorization: "Bearer owner-token" } });

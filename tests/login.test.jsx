@@ -22,12 +22,12 @@ function mockLoginResponse(status, body) {
 async function login(email, password, remember = true) {
   const user = userEvent.setup();
   render(<LoginPage />);
-  await user.type(screen.getByLabelText("E-mail address"), email);
-  await user.type(screen.getByLabelText("Password"), password);
+  await user.type(screen.getByLabelText("E-mail"), email);
+  await user.type(screen.getByLabelText("Adgangskode"), password);
   if (!remember) {
     await user.click(screen.getByRole("checkbox"));
   }
-  await user.click(screen.getByRole("button", { name: "Log in" }));
+  await user.click(screen.getByRole("button", { name: "Log ind" }));
 }
 
 describe("LoginPage", () => {

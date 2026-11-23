@@ -1,0 +1,165 @@
+.container {
+  width: 100%;
+  max-width: 40rem;
+  margin: 1.5rem 0;
+  color: var(--color-green);
+}
+
+.editorContainer {
+  margin: 0;
+}
+
+.container button {
+  padding: 0.7rem 1.25rem;
+  border: 1px solid transparent;
+  border-radius: 0.625rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.createButton {
+  background: var(--color-green);
+  color: var(--color-white);
+}
+
+.createButton:hover {
+  background: var(--color-green);
+}
+
+.container button:not(.saveButton):active:not(:disabled) {
+  background: var(--color-light-green);
+  color: var(--color-green);
+}
+
+.saveButton {
+  background: var(--color-red);
+  color: var(--color-white);
+}
+
+.saveButton:hover:not(:disabled),
+.saveButton:active:not(:disabled) {
+  background: var(--color-red-hover);
+}
+
+.saveButton:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 2rem;
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  background: var(--color-white);
+}
+
+.form h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.form > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.form label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.form input:not([type="checkbox"]),
+.form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background: var(--color-cream);
+  color: var(--color-green);
+  font: inherit;
+}
+
+.form textarea {
+  min-height: 6.25rem;
+  resize: vertical;
+}
+
+.form input:focus-visible,
+.form textarea:focus-visible,
+.container button:focus-visible {
+  outline: 3px solid var(--color-green);
+  outline-offset: 3px;
+}
+
+.form .checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  cursor: pointer;
+}
+
+.checkboxLabel input {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  accent-color: var(--color-green);
+}
+
+.form p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.cancelButton {
+  align-self: flex-start;
+  background: var(--color-cream);
+  color: var(--color-green);
+}
+
+.cancelButton:hover {
+  background: var(--color-border);
+}
+
+.modalContainer {
+  width: 90%;
+  max-width: 40rem;
+  max-height: 90dvh;
+  margin: auto;
+  padding: 0.5rem;
+  overflow: hidden;
+  border: none;
+  border-radius: 1rem;
+  background: var(--color-white);
+  color: var(--color-green);
+}
+
+.modalContainer .form {
+  max-height: calc(90dvh - 1rem);
+  overflow-y: auto;
+  padding: 1.5rem;
+  border: none;
+  border-radius: 0;
+}
+
+.modalContainer .form > * {
+  flex-shrink: 0;
+}
+
+.modalContainer::backdrop {
+  background: color-mix(in srgb, var(--color-green) 35%, transparent);
+  backdrop-filter: blur(0.35rem);
+}
+

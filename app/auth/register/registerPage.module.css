@@ -1,56 +1,186 @@
-
-.container {
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.page {
+  display: flex;
+  min-height: 100dvh;
+  color: var(--color-green);
 }
 
-.form {
-    padding: 30px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    width: 360px;
-    max-width: 100%;
+.leftContainer {
+  display: flex;
+  flex-direction: column;
+  width: 42%;
+  padding: 3rem;
+  background: var(--color-green);
+  color: var(--color-white);
 }
 
-.form h1 {
-    margin-bottom: 20px;
-    text-align: center;
+.smallIconTextContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-left: 2rem;
 }
 
-.form input {
+.leftContainer svg {
+  flex-shrink: 0;
+  padding: 0.35rem;
+  border-radius: 0.4rem;
+  background: var(--color-lime);
+  stroke: var(--color-green);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.smallIconTextContainer svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.largeIconTextContainer {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-left: 2rem;
+}
+
+.largeIconTextContainer svg {
+  width: 10rem;
+  height: 10rem;
+  padding: 1.25rem;
+  border-radius: 1.75rem;
+}
+
+.largeIconTextContainer h1 {
+  max-width: 8ch;
+  margin: 0;
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.rightContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 58%;
+  padding: 2rem;
+  background: var(--color-cream);
+}
+
+.credentialsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 22rem;
+  padding: 1.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--color-white);
+}
+
+.credentialsContainer h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.credentialsContainer > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.credentialsContainer label {
+  font-size: 0.75rem;
+}
+
+.credentialsContainer input {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.4rem;
+  background: var(--color-white);
+  color: var(--color-green);
+  font-size: 0.75rem;
+}
+
+.credentialsContainer button {
+  padding: 0.6rem 1rem;
+  border-radius: 0.4rem;
+  background: var(--color-red);
+  color: var(--color-white);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.credentialsContainer button:hover {
+  background: var(--color-red-hover);
+}
+
+.credentialsContainer button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.credentialsContainer p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.credentialsContainer a {
+  margin-left: 0.25rem;
+  color: var(--color-red);
+  text-decoration: none;
+}
+
+.credentialsContainer a:hover {
+  text-decoration: underline;
+}
+
+.credentialsContainer .success {
+  color: var(--color-green);
+}
+
+.credentialsContainer .error {
+  color: var(--color-red);
+}
+
+.credentialsContainer input:focus-visible,
+.credentialsContainer button:focus-visible,
+.credentialsContainer a:focus-visible {
+  outline: 2px solid var(--color-green);
+  outline-offset: 3px;
+}
+@media (max-width: 40rem) {
+  .page {
+    flex-direction: column;
+  }
+
+  .leftContainer,
+  .rightContainer {
     width: 100%;
-    padding: 10px;
-    margin: 6px 0 15px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    padding: 2rem;
+  }
+
+  .largeIconTextContainer {
+    padding-top: 3rem;
+  }
+
+  .rightContainer {
+    flex: 1;
+  }
 }
 
-.form button {
-    width: 100%;
-    padding: 10px;
-    margin-top: 15px;
-    background: #222;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
 
-.form button:hover {
-    background: #444;
-}
 
-.form button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.error {
-    color: #c62828;
-}
-
-.success {
-    color: #238636;
-}

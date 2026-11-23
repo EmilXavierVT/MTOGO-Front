@@ -6,6 +6,7 @@ import DishList from "./DishList";
 import EditDish from "./EditDish";
 import { getMenus } from "../api";
 import styles from "../restaurantOwner.module.css";
+import navbarStyles from "./Navbar.module.css";
 
 function MenuSelector() {
   const [menus, setMenus] = useState([]);
@@ -47,12 +48,13 @@ function MenuSelector() {
 
   return (
     <section aria-label="Manage menus">
-      <div className={styles.menuBar} role="group" aria-label="Choose a menu">
+      <div className={navbarStyles.menuHeaderContainer}>
+      <div className={navbarStyles.menuBar} role="group" aria-label="Choose a menu">
         {menus.map((menu) => (
           <button
             key={menu.id}
             type="button"
-            className={styles.menuButton}
+            className={navbarStyles.menuButton}
             aria-pressed={menu.id === selectedMenuId}
             onClick={() => {
               setSelectedMenuId(menu.id);
@@ -64,10 +66,15 @@ function MenuSelector() {
         ))}
       </div>
       {selectedMenu && (
+        <div className={navbarStyles.createDishContainer}>
+          <CreateDish key={selectedMenuId} menuId={selectedMenuId} onDishCreated={refreshMenus} />
+        </div>
+      )}
+      </div>
+      {selectedMenu && (
         <div className={styles.menuContent}>
           <DishList menu={selectedMenu} selectedDishId={selectedDishId} onSelectDish={setSelectedDishId} />
           <div>
-            <CreateDish key={selectedMenuId} menuId={selectedMenuId} onDishCreated={refreshMenus} />
             {selectedDish && (
               <EditDish key={selectedDish.id} menuId={selectedMenuId} dish={selectedDish}
                 onDishUpdated={refreshMenus} onClose={() => setSelectedDishId(null)} />

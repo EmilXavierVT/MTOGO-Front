@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./CreateDish.module.css";
 import { createDish } from "../api";
 
@@ -8,6 +8,19 @@ function CreateDish({ menuId, onDishCreated}) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const dialogRef = useRef(null);
+
+  useEffect(() => {
+    if (!showCreateForm) return;
+    const dialog = dialogRef.current;
+    const previousOverflow = document.body.style.overflow;
+    dialog.showModal();
+    document.body.style.overflow = "hidden";
+    return () => {
+      dialog.close();
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [showCreateForm]);
 
   async function handleSubmitForm(event) {
     event.preventDefault();
@@ -41,17 +54,35 @@ function CreateDish({ menuId, onDishCreated}) {
         onClick={() => setShowCreateForm(true)}
         aria-expanded={showCreateForm}
         aria-controls="create-dish-form"
+        aria-haspopup="dialog"
       >
         Create new dish
       </button>
 
       {showCreateForm && (
+        <dialog
+          ref={dialogRef}
+          className={styles.modalContainer}
+          aria-labelledby="create-dish-title"
+          onCancel={(event) => {
+            event.preventDefault();
+            if (!loading) setShowCreateForm(false);
+          }}
+          onClick={(event) => {
+            if (loading || event.target !== event.currentTarget) return;
+            const bounds = event.currentTarget.getBoundingClientRect();
+            if (event.clientX < bounds.left || event.clientX > bounds.right ||
+                event.clientY < bounds.top || event.clientY > bounds.bottom) {
+              setShowCreateForm(false);
+            }
+          }}
+        >
         <form
           className={styles.form}
           id="create-dish-form"
           onSubmit={handleSubmitForm}
         >
-          <h2>Create new dish</h2>
+          <h2 id="create-dish-title">Create new dish</h2>
 
           <div>
             <label htmlFor="dish-name-da">Dish name (Danish)</label>
@@ -95,7 +126,7 @@ function CreateDish({ menuId, onDishCreated}) {
           </div>
 
           {error && <p role="alert">{error}</p>}
-          <button className={styles.createButton} type="submit" disabled={loading}>
+          <button className={styles.saveButton} type="submit" disabled={loading}>
             {loading ? "Saving..." : "Save dish"}
           </button>
 
@@ -103,6 +134,7 @@ function CreateDish({ menuId, onDishCreated}) {
             Cancel
           </button>
         </form>
+        </dialog>
       )}
     </div>
   );

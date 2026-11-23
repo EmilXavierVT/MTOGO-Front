@@ -35,7 +35,7 @@ export default function EditDish({ menuId, dish, onDishUpdated, onClose }) {
   }
 
   return (
-    <section id="dish-editor" className={styles.container} aria-labelledby="edit-dish-heading">
+    <section id="dish-editor" className={`${styles.container} ${styles.editorContainer}`} aria-labelledby="edit-dish-heading">
       <form className={styles.form} onSubmit={handleSubmit} onChange={() => setSaved(false)}>
         <h2 id="edit-dish-heading">Edit dish</h2>
         <div>
@@ -64,7 +64,7 @@ export default function EditDish({ menuId, dish, onDishUpdated, onClose }) {
         </label>
         {error && <p role="alert">{error}</p>}
         {saved && <p role="status">Changes saved.</p>}
-        <button className={styles.createButton} type="submit" disabled={loading}>
+        <button className={styles.saveButton} type="submit" disabled={loading}>
           {loading ? "Saving..." : "Save changes"}
         </button>
         <button className={styles.cancelButton} type="button" disabled={loading} onClick={onClose}>Close editor</button>

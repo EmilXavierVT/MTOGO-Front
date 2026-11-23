@@ -1,10 +1,10 @@
 .box {
   min-width: 0;
   padding: 20px;
-  border: 1px solid #dce5df;
+  border: 1px solid var(--color-border);
   border-radius: 14px;
-  background: #fff;
-  color: #25332e;
+  background: var(--color-white);
+  color: var(--color-green);
 }
 
 .box h2 {
@@ -15,7 +15,7 @@
 
 .menuName {
   margin: 5px 0 16px;
-  color: #63736a;
+  color: var(--color-text-muted);
   font-size: 0.85rem;
   overflow-wrap: anywhere;
 }
@@ -30,7 +30,7 @@
 
 .dish {
   width: 100%;
-  background: #fff;
+  background: var(--color-white);
   color: inherit;
   font: inherit;
   text-align: left;
@@ -40,17 +40,31 @@
   justify-content: space-between;
   gap: 12px;
   padding: 12px;
-  border: 1px solid #e1e7e2;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
 }
 
-.dish:hover, .dish[aria-pressed="true"] {
-  background: #e0eddd;
-  border-color: #b5cfb6;
+.dish:hover {
+  background: var(--color-light-green);
+  border-color: var(--color-green);
+}
+
+.dish[aria-pressed="true"] {
+  background: var(--color-light-green);
+  border-color: var(--color-green);
+  color: var(--color-green);
+}
+
+.dish[aria-pressed="true"] .price {
+  color: var(--color-text-muted);
+}
+
+.dish:active {
+  background: var(--color-light-green);
 }
 
 .dish:focus-visible {
-  outline: 3px solid #a5d5bc;
+  outline: 3px solid var(--color-green);
   outline-offset: 2px;
 }
 
@@ -67,7 +81,7 @@
 }
 
 .price, .empty {
-  color: #63736a;
+  color: var(--color-text-muted);
   font-size: 0.8rem;
 }
 
@@ -83,11 +97,12 @@
 }
 
 .available {
-  color: #275b3c;
-  background: #e0eddd;
+  color: var(--color-green);
+  background: var(--color-light-green);
 }
 
 .unavailable {
-  color: #626857;
-  background: #eeeee7;
+  color: var(--color-text-muted);
+  background: var(--color-cream);
 }
+

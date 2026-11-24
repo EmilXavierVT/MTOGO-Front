@@ -127,6 +127,32 @@
   font-size: 0.85rem;
 }
 
+.menuError {
+  padding: 16px;
+  border-radius: 10px;
+  background: #f6e1de;
+  color: #8f2c22;
+}
+
+.menuError p {
+  margin: 0 0 12px;
+}
+
+.retryButton {
+  padding: 8px 14px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.retryButton:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 3px;
+}
+
 .cartList {
   display: grid;
   gap: 12px;

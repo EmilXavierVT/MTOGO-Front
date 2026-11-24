@@ -11,6 +11,7 @@ export default function MenuView({ menu, onAddToCart }) {
       <h3 id={`menu-${menu.id}`} className={styles.menuName}>
         {menu.name}
       </h3>
+      <p className={styles.priceNote}>All prices include VAT.</p>
       {menu.products.length === 0 ? (
         <p className={styles.empty}>No dishes in this menu yet.</p>
       ) : (

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getRestaurants, getRestaurantMenus } from "../api";
 import MenuView from "./MenuView";
 import styles from "./DisplayRestaurant.module.css";
@@ -12,7 +12,13 @@ const priceFormat = new Intl.NumberFormat("da-DK", {
 export default function DisplayRestaurant() {
   const [restaurants, setRestaurants] = useState([]);
   const [selectedRestaurantId, setSelectedRestaurantId] = useState(null);
-  const [menus, setMenus] = useState([]);
+  const [menuState, setMenuState] = useState({
+    restaurantId: null,
+    menus: [],
+    loading: false,
+    error: "",
+  });
+  const menuRequestId = useRef(0);
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -37,22 +43,31 @@ export default function DisplayRestaurant() {
     loadRestaurants();
     return () => {
       active = false;
+      menuRequestId.current += 1;
     };
   }, []);
 
   async function selectRestaurant(restaurantId) {
+    const requestId = ++menuRequestId.current;
     setSelectedRestaurantId(restaurantId);
-    setMenus([]);
+    setMenuState({ restaurantId, menus: [], loading: true, error: "" });
     try {
       const data = await getRestaurantMenus(restaurantId);
-      setMenus(data);
+      if (requestId !== menuRequestId.current) return;
+      setMenuState({ restaurantId, menus: data, loading: false, error: "" });
     } catch (error) {
-      setError(error.message || "Could not load menus");
+      if (requestId !== menuRequestId.current) return;
+      setMenuState({
+        restaurantId,
+        menus: [],
+        loading: false,
+        error: error.message || "Could not load menus",
+      });
     }
   }
 
-  function addToCart(dish) {
-    if (cart.length > 0 && cart[0].restaurantId !== selectedRestaurantId) {
+  function addToCart(dish, restaurantId) {
+    if (cart.length > 0 && cart[0].restaurantId !== restaurantId) {
       setCartError(
         "You can only order from one restaurant per order. Please empty the cart to order from another restaurant.",
       );
@@ -73,7 +88,7 @@ export default function DisplayRestaurant() {
     } else {
       setCart([
         ...cart,
-        { dish, quantity: 1, restaurantId: selectedRestaurantId },
+        { dish, quantity: 1, restaurantId },
       ]);
     }
   }
@@ -140,9 +155,28 @@ export default function DisplayRestaurant() {
       <div className={styles.orderLayout}>
         <div className={styles.menus}>
           {selectedRestaurant ? (
-            menus.map((menu) => (
-              <MenuView key={menu.id} menu={menu} onAddToCart={addToCart} />
-            ))
+            <>
+              {menuState.loading && <p role="status">Loading menus...</p>}
+              {menuState.error && (
+                <div className={styles.menuError}>
+                  <p role="alert">{menuState.error}</p>
+                  <button
+                    type="button"
+                    className={styles.retryButton}
+                    onClick={() => selectRestaurant(selectedRestaurantId)}
+                  >
+                    Retry menu
+                  </button>
+                </div>
+              )}
+              {menuState.menus.map((menu) => (
+                <MenuView
+                  key={menu.id}
+                  menu={menu}
+                  onAddToCart={(dish) => addToCart(dish, menuState.restaurantId)}
+                />
+              ))}
+            </>
           ) : (
             <p className={styles.hint}>Select a restaurant to see the menu.</p>
           )}

@@ -248,3 +248,22 @@
     position: static;
   }
 }
+
+
+.checkoutButton {
+  width: 100%;
+  padding: 11px 18px;
+  margin-bottom: 10px;
+  border: 1px solid var(--color-green);
+  border-radius: 10px;
+  background: var(--color-green);
+  color: var(--color-white);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.checkoutButton:focus-visible {
+  outline: 3px solid var(--color-green);
+  outline-offset: 3px;
+}

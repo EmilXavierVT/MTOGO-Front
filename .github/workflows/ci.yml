@@ -45,7 +45,7 @@ jobs:
 
       - name: Upload test reports
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: frontend-test-reports
           path: test-results/
@@ -80,7 +80,8 @@ jobs:
           docker run --detach --name mtogo-ci-frontend --network mtogo-ci \
             --publish 127.0.0.1:13000:3000 "$CI_IMAGE"
           curl --fail --silent --show-error --retry 30 --retry-delay 2 --retry-connrefused \
-            --retry-max-time 120 http://127.0.0.1:13000/ --output "$RUNNER_TEMP/landing.html"
+            --retry-all-errors --max-time 10 --retry-max-time 120 \
+            http://127.0.0.1:13000/ --output "$RUNNER_TEMP/landing.html"
           grep --quiet MTOGO "$RUNNER_TEMP/landing.html"
           curl --fail --silent --show-error http://127.0.0.1:13000/auth/login --output /dev/null
           status=$(curl --silent --show-error --output "$RUNNER_TEMP/proxy-response.json" \
@@ -98,3 +99,12 @@ jobs:
         run: |
           docker rm --force mtogo-ci-frontend mtogo-ci-api || true
           docker network rm mtogo-ci || true
+
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [frontend]
+    uses: ./.github/workflows/docker-publish.yml
+    with:
+      source_sha: ${{ github.sha }}
+    secrets:
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

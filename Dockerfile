@@ -1,6 +1,8 @@
 FROM node:24-bookworm-slim AS build
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+ARG BACKEND_URL=http://mtogo-backend:7070
+ENV BACKEND_URL=$BACKEND_URL
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .

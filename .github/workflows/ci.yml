@@ -1,6 +1,8 @@
 name: Frontend Lint, Test & Build
 
 on:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -8,20 +10,28 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   frontend:
     name: Frontend Build & Lint
-    runs-on: ubuntu-22.04
-    timeout-minutes: 10
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI_IMAGE: mtogo-frontend-ci:${{ github.sha }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
 
       - name: Install dependencies
@@ -31,7 +41,60 @@ jobs:
         run: npm run lint
 
       - name: Test frontend
-        run: npm test
+        run: npm test -- --reporter=default --reporter=junit --outputFile.junit=test-results/vitest.xml
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: frontend-test-reports
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Build frontend
         run: npm run build
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069
+
+      - name: Build production image for smoke test
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
+        with:
+          context: .
+          load: true
+          tags: ${{ env.CI_IMAGE }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+      - name: Verify production pages and API proxy
+        shell: bash
+        run: |
+          docker network create mtogo-ci
+          docker run --detach --name mtogo-ci-api --network mtogo-ci --network-alias mtogo-backend \
+            --entrypoint node "$CI_IMAGE" -e '
+              require("node:http").createServer((req, res) => {
+                res.writeHead(401, {"content-type": "application/json"});
+                res.end(JSON.stringify({error: "CI upstream reached"}));
+              }).listen(7070, "0.0.0.0");'
+          docker run --detach --name mtogo-ci-frontend --network mtogo-ci \
+            --publish 127.0.0.1:13000:3000 "$CI_IMAGE"
+          curl --fail --silent --show-error --retry 30 --retry-delay 2 --retry-connrefused \
+            --retry-max-time 120 http://127.0.0.1:13000/ --output "$RUNNER_TEMP/landing.html"
+          grep --quiet MTOGO "$RUNNER_TEMP/landing.html"
+          curl --fail --silent --show-error http://127.0.0.1:13000/auth/login --output /dev/null
+          status=$(curl --silent --show-error --output "$RUNNER_TEMP/proxy-response.json" \
+            --write-out '%{http_code}' http://127.0.0.1:13000/api/auth/me)
+          test "$status" = 401
+          python3 -c 'import json, sys; assert json.load(open(sys.argv[1]))["error"] == "CI upstream reached"' \
+            "$RUNNER_TEMP/proxy-response.json"
+
+      - name: Show container diagnostics on failure
+        if: failure()
+        run: docker logs --tail 100 mtogo-ci-frontend || true
+
+      - name: Remove isolated smoke-test containers
+        if: always()
+        run: |
+          docker rm --force mtogo-ci-frontend mtogo-ci-api || true
+          docker network rm mtogo-ci || true

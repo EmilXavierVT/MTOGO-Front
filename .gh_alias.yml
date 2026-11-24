@@ -1,0 +1,4 @@
+workon: '!python3 "$(git rev-parse --show-toplevel)/scripts/takt.py" workon "$@"'
+wrapup: '!gh tt wrapup "$@"'
+deliver: '!python3 "$(git rev-parse --show-toplevel)/scripts/takt.py" deliver "$@"'
+flow: '!python3 "$(git rev-parse --show-toplevel)/scripts/takt.py" flow "$@"'

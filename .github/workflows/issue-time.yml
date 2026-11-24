@@ -1,0 +1,33 @@
+name: Issue time
+
+on:
+  issue_comment:
+    types: [created]
+  issues:
+    types: [closed, reopened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  record:
+    if: >-
+      !github.event.issue.pull_request &&
+      (github.event_name == 'issues' ||
+       (github.event.comment.body == '/flow time' &&
+        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    concurrency:
+      group: issue-time-${{ github.event.issue.number }}
+      queue: max
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - name: Record closure/reopening or report elapsed issue time
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/takt.py event --path "$GITHUB_EVENT_PATH"

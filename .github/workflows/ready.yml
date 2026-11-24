@@ -1,0 +1,86 @@
+name: Ready
+
+on:
+  push:
+    branches: ['ready/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ready-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Takt verification
+    if: startsWith(github.ref, 'refs/heads/ready/')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Freeze issue classification and validate the prepared commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/takt.py ready-plan --output release-plan.json
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Run the same checks as local verification
+        run: ./scripts/check.sh verify
+      - name: Save the verified release plan
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: release-plan
+          path: release-plan.json
+          if-no-files-found: error
+          retention-days: 90
+          overwrite: true
+
+  deliver:
+    name: Fast-forward verified commit
+    needs: verify
+    if: vars.TAKT_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: read
+    concurrency:
+      group: takt-main-delivery
+      queue: max
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAKT_BASE_SHA: ${{ vars.TAKT_BASE_SHA }}
+    steps:
+      - name: Check delivery credentials are configured
+        env:
+          READY_PUSHER: ${{ secrets.READY_PUSHER }}
+        run: test -n "$READY_PUSHER"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.READY_PUSHER }}
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: release-plan
+      - name: Recheck current branch heads immediately before promotion
+        run: python3 scripts/takt.py check-promotion --plan release-plan.json
+      - uses: devx-cafe/takt-actions/ready-to-trunk@d354e40ce1916a4fce4bd30f095e9aecc952adeb
+        with:
+          delete_dev_branch: 'false'
+          delete_ready_branch: 'false'
+          close_pr: 'false'
+          close_issue: 'false'
+      - name: Close the issue and clean up only unchanged branches
+        run: python3 scripts/takt.py finalize --plan release-plan.json

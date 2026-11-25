@@ -448,6 +448,9 @@ def main():
         if git("status", "--porcelain"):
             raise ValueError("Commit or stash all work before delivery")
         run([ROOT / "scripts/check.sh", "verify"], capture=False)
+        # gh-tt persists field metadata across runs and can silently miss a renamed
+        # option. Use a fresh board lookup after verification before submission.
+        project_state(repository(), branch_issue(), "review")
         env = {**os.environ, "TAKT_CHECKS_PASSED": "1"}
         run(["gh", "tt", "deliver"], capture=False, env=env)
         branch = git("branch", "--show-current")

@@ -69,7 +69,9 @@ short-lived issue-number branches. Cross-repository work uses linked issues.
 RESPONSIBLES initially assigns all paths to @EmilXavierVT. Collaborate during
 development; after activation PR approval is replaced by the automated delivery gate.
 
-The deliver alias runs local verification before calling upstream gh-tt. A clean
+The deliver alias runs local verification, then updates In review using fresh
+board metadata before calling upstream gh-tt. This keeps the card synchronized
+even when gh-tt's `.tt_cache` still contains an older column name. A clean
 workspace is required: uncommitted changes are not silently left out. gh-tt prepares
 one commit with the same tree as the development branch and pushes ready/<branch>.
 The ready workflow freezes the issue classification, validates the branch heads,

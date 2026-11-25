@@ -233,6 +233,79 @@ class NativeStatusTests(unittest.TestCase):
                     self.assertEqual(result["current_seconds"], 0)
 
 
+class DeliveryBoardTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        (self.root / ".tt-config.json").write_text(json.dumps({"project": {"owner": "owner", "number": 7}}))
+        self.board = "In progress"
+        self.trace = []
+        self.fail_checks = False
+
+    def command(self, args, **kwargs):
+        if str(args[0]).endswith("scripts/check.sh"):
+            self.trace.append("verify")
+            if self.fail_checks:
+                raise RuntimeError("Verification failed")
+        elif args[:3] == ["gh", "tt", "deliver"]:
+            # Simulate gh-tt's stale field cache silently skipping the board update.
+            self.trace.append("submit")
+            self.assertEqual(self.board, "In review", "Delivery submitted with stale board status")
+        else:
+            self.fail(f"Unexpected command: {args}")
+        return ""
+
+    def api(self, endpoint, payload=None):
+        self.trace.append("api")
+        if endpoint == "graphql":
+            query = payload["query"]
+            if query.lstrip().startswith("query"):
+                return {"data": {"user": {"projectV2": {
+                    "id": "project", "fields": {"nodes": [{"id": "field", "name": "Status", "options": [
+                        {"id": "review-option", "name": "In review"},
+                    ]}]},
+                }}}}
+            if "addProjectV2ItemById" in query:
+                return {"data": {"addProjectV2ItemById": {"item": {"id": "item"}}}}
+            if "updateProjectV2ItemFieldValue" in query:
+                self.assertEqual(payload["variables"]["o"], "review-option")
+                self.board = "In review"
+                return {"data": {"updateProjectV2ItemFieldValue": {"projectV2Item": {"id": "item"}}}}
+        if endpoint == "repos/owner/repo/issues/42":
+            return {"node_id": "issue"}
+        if endpoint == "repos/owner/repo/issues/42/comments":
+            return {}
+        self.fail(f"Unexpected API call: {endpoint}")
+
+    def invoke(self):
+        def git(*args):
+            if args == ("status", "--porcelain"):
+                return ""
+            if args == ("branch", "--show-current"):
+                return "42-flow"
+            self.fail(f"Unexpected git call: {args}")
+        with patch.object(takt, "ROOT", self.root), patch.object(takt, "git", side_effect=git), \
+             patch.object(takt, "run", side_effect=self.command), patch.object(takt, "api", side_effect=self.api), \
+             patch.object(takt, "repository", return_value="owner/repo"), \
+             patch.object(takt, "remote_head", return_value="a" * 40), patch.object(takt, "pages", return_value=[]), \
+             patch.object(sys, "argv", ["takt.py", "deliver"]):
+            takt.main()
+
+    def test_delivery_uses_live_board_metadata_even_when_upstream_cache_is_stale(self):
+        self.invoke()
+        self.assertEqual(self.board, "In review")
+        self.assertEqual(self.trace[0], "verify")
+        self.assertIn("submit", self.trace)
+
+    def test_failed_local_verification_does_not_move_the_board_or_submit(self):
+        self.fail_checks = True
+        with self.assertRaisesRegex(RuntimeError, "Verification failed"):
+            self.invoke()
+        self.assertEqual(self.board, "In progress")
+        self.assertEqual(self.trace, ["verify"])
+
+
 class GitFixture(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()

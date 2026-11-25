@@ -113,6 +113,126 @@ class FlowTests(unittest.TestCase):
             takt.timestamp("2026-11-24T11:00:00")
 
 
+class NativeStatusTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        (self.root / ".tt-config.json").write_text(json.dumps({"flow": {"status_ids": {
+            "backlog": 2, "todo": 3, "in_progress": 4, "review": 8,
+            "done": 5, "not_planned": 6, "duplicate": 7,
+        }}}))
+        self.comments = []
+        for target, value in [("ROOT", self.root), ("pages", lambda *args: list(self.comments)),
+                              ("api", self.post), ("run", self.unexpected_command)]:
+            mocked = patch.object(takt, target, value)
+            mocked.start()
+            self.addCleanup(mocked.stop)
+
+    def unexpected_command(self, *args, **kwargs):
+        self.fail("Timing events must not run branch or delivery commands")
+
+    def post(self, endpoint, payload=None):
+        self.assertEqual(endpoint, "repos/owner/repo/issues/42/comments")
+        self.comments.append({
+            "id": len(self.comments) + 1, "body": payload["body"],
+            "created_at": takt.iso(dt.datetime.now(takt.UTC)),
+            "author_association": "NONE", "user": {"login": "github-actions[bot]"},
+        })
+        return self.comments[-1]
+
+    def send(self, status_id, hour, previous=None, snapshot=None, action="status_changed"):
+        status = {"id": status_id, "name": "Display names can change"}
+        event = {
+            "action": action, "repository": {"full_name": "owner/repo"},
+            "issue": {"number": 42, "updated_at": f"2026-11-24T{hour:02}:00:00Z",
+                      "status": {"id": snapshot if snapshot is not None else status_id}},
+            "status": status,
+            "changes": {"status": {"from": {"id": previous} if previous else None}},
+        }
+        path = self.root / "event.json"
+        path.write_text(json.dumps(event))
+        takt.event_handler(path)
+
+    def summary(self):
+        return takt.flow_summary(takt.flow_events(self.comments), takt.timestamp("2026-11-24T18:00:00Z"))
+
+    def test_board_round_trip_pauses_backlog_and_accumulates_visits(self):
+        self.send(4, 11, 2)
+        self.send(8, 12, 4)
+        self.send(2, 13, 8)
+        self.send(4, 14, 2)
+        self.send(5, 16, 4)
+        result = self.summary()
+        self.assertEqual(result["state"], "done")
+        self.assertEqual(result["current_seconds"], 0)
+        self.assertEqual(result["totals"], {"in_progress": 3 * 3600, "review": 3600})
+
+    def test_queued_events_keep_payload_time_and_captured_status(self):
+        self.send(4, 11, 2, snapshot=5)
+        result = self.summary()
+        self.assertEqual(result["state"], "in_progress")
+        self.assertEqual(result["since"], "2026-11-24T11:00:00Z")
+        self.assertEqual(result["totals"]["in_progress"], 7 * 3600)
+
+    def test_duplicate_delivery_does_not_add_another_transition(self):
+        self.send(4, 11, 2)
+        self.send(4, 11, 2)
+        self.assertEqual(len(self.comments), 1)
+
+    def test_out_of_order_events_produce_the_same_intervals(self):
+        for status, hour, previous in [(4, 14, 2), (5, 16, 4), (2, 10, None),
+                                       (8, 12, 4), (4, 11, 2), (2, 13, 8)]:
+            self.send(status, hour, previous)
+        result = self.summary()
+        self.assertEqual(result["state"], "done")
+        self.assertEqual(result["totals"], {"in_progress": 3 * 3600, "review": 3600})
+        self.assertNotIn("-1h", self.comments[-1]["body"])
+
+    def test_older_start_is_preserved_when_latest_state_is_also_in_progress(self):
+        self.send(4, 14, 8)
+        self.send(8, 12, 4)
+        self.send(4, 11, 2)
+        self.assertEqual(self.summary()["totals"], {"in_progress": 5 * 3600, "review": 2 * 3600})
+        self.assertEqual(len(self.comments), 3)
+
+    def test_workon_and_deliver_logs_do_not_reset_native_intervals(self):
+        takt.record_flow("owner/repo", 42, "in_progress", "workon:old-client", at="2026-11-24T11:00:00Z")
+        self.send(4, 11, 2)
+        self.send(8, 12, 4)
+        takt.record_flow("owner/repo", 42, "review", "review:verified-sha")
+        self.send(5, 16, 8)
+        self.assertEqual(self.summary()["totals"], {"in_progress": 3600, "review": 4 * 3600})
+        self.assertEqual(len(self.comments), 4)
+
+    def test_native_lifecycle_duplicates_are_ignored_and_reopening_pauses(self):
+        self.send(4, 11, 2)
+        self.send(5, 12, 4)
+        self.send(5, 12, 4, action="closed")
+        self.send(2, 14, 5)
+        self.send(2, 14, 5, action="reopened")
+        result = self.summary()
+        self.assertEqual(result["state"], "backlog")
+        self.assertEqual(result["totals"]["in_progress"], 3600)
+        self.assertEqual(len(self.comments), 3)
+
+    def test_unknown_status_is_ignored(self):
+        self.send(999, 11, 2)
+        self.assertEqual(self.comments, [])
+
+    def test_todo_and_terminal_statuses_stop_accumulating_active_time(self):
+        for status_id, state in [(3, "todo"), (6, "not_planned"), (7, "duplicate")]:
+            with self.subTest(state=state):
+                self.comments.clear()
+                self.send(4, 11, 2)
+                self.send(status_id, 12, 4)
+                result = self.summary()
+                self.assertEqual(result["state"], state)
+                self.assertEqual(result["totals"]["in_progress"], 3600)
+                if state in takt.TERMINAL_STATES:
+                    self.assertEqual(result["current_seconds"], 0)
+
+
 class GitFixture(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()

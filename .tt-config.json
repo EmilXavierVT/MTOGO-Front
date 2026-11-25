@@ -16,8 +16,14 @@
     }
   },
   "deliver": {
-    "status": "Review",
+    "status": "In review",
     "policies": { "branch_prefix": "ready", "poll": false }
+  },
+  "flow": {
+    "status_ids": {
+      "backlog": 2, "todo": 3, "in_progress": 4, "review": 8,
+      "done": 5, "not_planned": 6, "duplicate": 7
+    }
   },
   "labels": {
     "type:feature": { "color": "0e8a16", "description": "Product capability; minor image version", "category": "type" },

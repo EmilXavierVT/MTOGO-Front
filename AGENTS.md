@@ -1,3 +1,31 @@
+## MTOGO issue workflow
+
+Use Takt for every issue in this repository. Before starting or resuming work,
+read `docs/takt-workflow.md` from current main. If this checkout predates the Takt
+tools, use a clean worktree from current `origin/main`, preserving unrelated work.
+Run `./scripts/setup-local.sh` if the wrapped commands are missing.
+
+Start with `gh workon -i <issue>` before implementation and verify the In progress
+timestamp using `gh flow time --issue <issue>`. Use the wrapped alias so timing is
+recorded. For an existing branch missing its start, run
+`gh flow start --issue <issue>` and verify the result.
+
+Run `./scripts/check.sh quick` during development and `gh wrapup` for issue commits
+in the clean workspace. When delivery is in scope, sync with current `origin/main`
+and use `gh deliver`. Follow verification and promotion, then confirm the In review
+and Done timestamps and issue closure. Resume with `gh workon` before fixing a
+failed delivery. Check live `TAKT_ENABLED` if activation is uncertain; use the
+documented PR fallback when disabled.
+
+Board moves between Backlog, In progress, In review and Done automatically record
+native issue-status events. Keep project status synchronization enabled. Dragging
+updates status and timing; `gh workon` and `gh deliver` handle code. Moving to Done
+closes the issue; moving a closed issue to an open status reopens it.
+
+For command transitions, use `gh flow start/review/backlog/done --issue <issue>`.
+Preserve existing history and report missing intervals honestly. See the workflow
+reference for captured-event timestamp precision and delivery limits.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know

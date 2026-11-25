@@ -18,7 +18,12 @@ UTC = dt.timezone.utc
 SHA = re.compile(r"[0-9a-f]{40}")
 VERSION = re.compile(r"v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)")
 MARKER = re.compile(r"<!-- mtogo-flow:v1 (\{[^\n]*\}) -->")
-STATES = {"in_progress": "In progress", "review": "Review", "done": "Done"}
+STATES = {
+    "backlog": "Backlog", "todo": "Todo", "in_progress": "In progress",
+    "review": "In review", "done": "Done", "not_planned": "Not planned",
+    "duplicate": "Duplicate",
+}
+TERMINAL_STATES = {"done", "not_planned", "duplicate"}
 TRUSTED = {"OWNER", "MEMBER", "COLLABORATOR"}
 PATCH_LABELS = {
     "bug", "documentation", "type:foundation", "type:verification",
@@ -229,7 +234,7 @@ def flow_summary(events, now=None):
     now = now or dt.datetime.now(UTC)
     totals = {"in_progress": 0.0, "review": 0.0}
     state, since = None, None
-    for event in events:
+    for event in sorted(events, key=lambda item: (item["time"], item["id"])):
         if event["time"] > now:
             continue
         if event["state"] == state:
@@ -237,7 +242,7 @@ def flow_summary(events, now=None):
         if state in totals:
             totals[state] += (event["time"] - since).total_seconds()
         state, since = event["state"], event["time"]
-    current = max(0.0, (now - since).total_seconds()) if since and state != "done" else 0.0
+    current = max(0.0, (now - since).total_seconds()) if since and state not in TERMINAL_STATES else 0.0
     if state in totals:
         totals[state] += current
     return {"state": state, "since": iso(since) if since else None, "current_seconds": current, "totals": totals, "as_of": iso(now)}
@@ -258,7 +263,7 @@ def flow_report(summary):
         f"| Time | Duration |\n| --- | --- |\n"
         f"| Current state | {duration(summary['current_seconds'])} |\n"
         f"| Total In progress | {duration(summary['totals']['in_progress'])} |\n"
-        f"| Total Review | {duration(summary['totals']['review'])} |\n\n"
+        f"| Total In review | {duration(summary['totals']['review'])} |\n\n"
         f"As of {summary['as_of']}. Calendar time, including nights and weekends."
     )
 
@@ -268,12 +273,14 @@ def record_flow(repo, issue, state, key, at=None):
     events = flow_events(comments)
     if any(event["key"] == key for event in events):
         return
-    if events and events[-1]["state"] == state:
-        return
     now = dt.datetime.now(UTC)
     event = {"state": state, "at": at or iso(now), "key": key}
     if timestamp(event["at"]) > now:
         raise ValueError("Cannot record a future transition")
+    # Keep explicit, older transitions even when the latest state is identical:
+    # a delayed In progress event can belong before an already-recorded review.
+    if at is None and events and events[-1]["state"] == state:
+        return
     summary = flow_summary([*events, {**event, "time": timestamp(event["at"]), "id": 2**63}], now)
     body = f"Moved to **{STATES[state]}**.\n\n{flow_report(summary)}\n\n<!-- mtogo-flow:v1 {json.dumps(event, sort_keys=True)} -->"
     api(f"repos/{repo}/issues/{issue}/comments", {"body": body})
@@ -288,7 +295,8 @@ def project_state(repo, issue, state):
     data = api("graphql", {"query": query, "variables": {"owner": config["owner"], "number": config["number"]}})
     project = data["data"]["user"]["projectV2"]
     field = next(item for item in project["fields"]["nodes"] if item.get("name") == "Status")
-    option = next(item for item in field["options"] if item["name"] == STATES[state])
+    names = {STATES[state], "Review"} if state == "review" else {STATES[state]}
+    option = next(item for item in field["options"] if item["name"] in names)
     content = api(f"repos/{repo}/issues/{issue}")["node_id"]
     item = api("graphql", {
         "query": "mutation($p:ID!,$c:ID!){addProjectV2ItemById(input:{projectId:$p,contentId:$c}){item{id}}}",
@@ -335,10 +343,22 @@ def finalize(plan):
     run(["gh", "issue", "close", str(plan["issue"]), "--repo", repo])
 
 
+def planning_state(status):
+    """Match stable repository status IDs, independently of display-name edits."""
+    if not isinstance(status, dict):
+        return None
+    config = json.loads((ROOT / ".tt-config.json").read_text())
+    status_ids = config.get("flow", {}).get("status_ids", {})
+    return next((state for state, value in status_ids.items()
+                 if state in STATES and value == status.get("id")), None)
+
+
 def event_handler(path):
     event = json.loads(Path(path).read_text())
     repo = event["repository"]["full_name"]
     action = event.get("action")
+    if event.get("issue", {}).get("pull_request"):
+        return
     if "comment" in event:
         comment = event["comment"]
         if comment.get("author_association") not in TRUSTED or (comment.get("body") or "").strip() != "/flow time":
@@ -346,8 +366,24 @@ def event_handler(path):
         number = event["issue"]["number"]
         summary = flow_summary(flow_events(pages(f"repos/{repo}/issues/{number}/comments")))
         api(f"repos/{repo}/issues/{number}/comments", {"body": flow_report(summary)})
+    elif "issue" in event and action == "status_changed":
+        issue = event["issue"]
+        # The top-level status describes this transition. issue.status is a later
+        # snapshot and can already show another column when changes happen quickly.
+        status = event.get("status")
+        state = planning_state(status)
+        if state is None:
+            return
+        previous = event.get("changes", {}).get("status", {}).get("from") or {}
+        at = iso(timestamp(issue["updated_at"]))
+        key = f"status:{at}:{previous.get('id', 'none')}:{status['id']}"
+        record_flow(repo, issue["number"], state, key, at=at)
     elif "issue" in event and action in {"closed", "reopened"}:
         issue = event["issue"]
+        # Native statuses emit status_changed too. Let that event record the
+        # captured transition; lifecycle payloads may describe a newer status.
+        if planning_state(issue.get("status")) is not None:
+            return
         if not flow_events(pages(f"repos/{repo}/issues/{issue['number']}/comments")):
             return
         state = "done" if action == "closed" else "in_progress"
@@ -393,7 +429,7 @@ def main():
     commands.add_parser("deliver")
     commands.add_parser("setup-labels")
     flow = commands.add_parser("flow")
-    flow.add_argument("action", choices=["start", "review", "done", "time"])
+    flow.add_argument("action", choices=["start", "review", "backlog", "done", "time"])
     flow.add_argument("--issue", type=int)
     flow.add_argument("--comment", action="store_true")
     event = commands.add_parser("event")
@@ -427,7 +463,7 @@ def main():
             if args.comment:
                 api(f"repos/{repo}/issues/{issue}/comments", {"body": report})
         else:
-            state = {"start": "in_progress", "review": "review", "done": "done"}[args.action]
+            state = {"start": "in_progress", "review": "review", "backlog": "backlog", "done": "done"}[args.action]
             project_state(repo, issue, state)
             record_flow(repo, issue, state, f"manual:{iso(dt.datetime.now(UTC))}")
             if state == "done":

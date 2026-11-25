@@ -88,37 +88,64 @@ to Done when the project's closed-item workflow is configured.
 
 ## Issue time
 
+The shared MTOGO board uses **Backlog**, **In progress**, **In review** and **Done**.
+Keep the project's issue-status synchronization enabled. GitHub matches board
+options to native issue statuses by name, so the former Review column is renamed
+In review. Repository status IDs are configured in `.tt-config.json` under
+`flow.status_ids`; verify them with `gh api repos/<owner>/<repo>/planning-statuses`.
+
+Dragging an issue to a matching column sends an `issues.status_changed` event.
+The Issue time workflow records it in the existing timestamped issue-comment log:
+
+| Destination | Timing effect |
+| --- | --- |
+| In progress | Start or resume accumulated development time |
+| In review | Start or resume accumulated review time |
+| Backlog or Todo | Pause development/review accumulation |
+| Done, Not planned or Duplicate | Stop development/review accumulation |
+
+Choosing a closed status also closes the issue; choosing an open status for a
+closed issue reopens it. Reopening normally returns it to Backlog. These are
+GitHub's native status semantics. Dragging a card does not create a code branch,
+verify changes, promote code or publish an image. Continue using `gh workon`,
+`gh wrapup` and `gh deliver` for the code workflow.
+
 ~~~sh
 gh flow time --issue 42
 gh flow time --issue 42 --comment
-# Manual transitions, for example during this bootstrap PR's team review:
+# Command alternatives to board moves:
 gh flow review --issue 42
 gh flow start --issue 42
+gh flow backlog --issue 42
 gh flow done --issue 42
 ~~~
 
-The time command shows:
+Reports show the current state and its start, plus accumulated In progress and
+In review time across repeated visits. Repeated states do not reset the interval.
+Duplicate event keys are ignored, and explicitly timestamped transitions are sorted
+chronologically even when Actions receives them out of order. Workon, deliver and
+manual flow commands remain compatible with the same log. Lifecycle events remain
+a fallback for repositories without native issue statuses.
 
-- Current state, when it began, and time spent there so far.
-- Accumulated In progress time across every visit.
-- Accumulated Review time across every visit.
+Native status logs use the issue update timestamp captured in the webhook payload,
+not when an Actions runner starts. The top-level event status identifies the move;
+the issue's snapshot can already show a later status. GitHub timestamps have
+one-second precision, and a payload built after another issue update can carry that
+later update time. This is captured-event timing, not a guarantee of the exact
+physical drag instant. Posting the comment can be delayed until Actions runs.
 
-Workon records In progress; delivery records Review; successful delivery records
-Done. Manual start/review/done commands update the board as well as the timing log;
-done also closes the issue. Closed/reopened issues with an existing timing log are
-tracked automatically after this workflow is on main.
+Times are stored in UTC and displayed in Europe/Copenhagen. Reports measure
+**calendar time**, including evenings, weekends and blocked periods, rather than
+hours worked. Existing history is preserved; enabling this workflow does not
+invent missing historical transitions.
 
-Issue comments hold timestamped transitions, including the original planning start
-for #98 and #9. Repeated commands do not reset a running interval, and time while
-Done is excluded if work later reopens. Reports measure **calendar time**, including
-evenings, weekends and blocked periods, rather than claiming hours worked.
-Timestamps are stored in UTC and displayed in Europe/Copenhagen.
+An owner or collaborator can comment `/flow time` to receive a fresh report.
+Reports are snapshots with an explicit as-of time. The timing log accepts only
+collaborator, member, owner or GitHub Actions bot comments. The workflow needs only
+its existing repository token and cannot deliver application code.
 
-After merging, an owner or collaborator can also comment /flow time on an issue
-to receive a fresh report. Existing reports are snapshots with an explicit as-of
-time. Board dragging alone is not observed; use gh flow start/review/done for manual
-transitions so the board and timing history agree. The log only accepts collaborator,
-member, owner or GitHub Actions bot transitions.
+Sources: [GitHub issue-status synchronization](https://docs.github.com/en/issues/tracking-your-work-with-issues/learning-about-issues/about-issue-statuses#syncing-statuses-with-projects),
+[status-change events](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/issue-status-webhooks-and-workflows).
 
 ## Automatic versions
 
@@ -165,7 +192,7 @@ prepared ready commit passes verification and the required settings are in place
    checks and the new CI. Keep a copy of the existing main protection settings.
 2. Run python3 scripts/takt.py setup-labels to create missing classification labels,
    preserving existing labels. Confirm the project's exact status names are
-   In progress, Review and Done, and its closed-item workflow selects Done.
+   Backlog, In progress, In review and Done, and its closed-item workflow selects Done.
 3. Create a fine-grained PAT with resource owner EmilXavierVT, selecting only
    MTOGO and MTOGO-Front, with Contents and Workflows write access. Metadata read
    access is included automatically. Store it privately as READY_PUSHER in each
@@ -189,11 +216,14 @@ prepared ready commit passes verification and the required settings are in place
 The release-plan artifact is retained for 90 days. Repair a failed publication
 before that evidence expires; the publisher refuses missing evidence rather than
 guessing issue labels. Upstream actions/extensions are pinned. actionlint 1.7.12
-predates GitHub's documented concurrency queue option; its one known queue syntax
-false positive is narrowly ignored in MegaLinter and in the validation command:
+predates GitHub's documented concurrency queue option and native issue-status
+events. These two syntax false positives are narrowly ignored in MegaLinter and
+in the validation command:
 
 ~~~sh
-actionlint -shellcheck='' -ignore '^unexpected.key..queue..for..concurrency..section'
+actionlint -shellcheck='' \
+  -ignore '^unexpected.key..queue..for..concurrency..section' \
+  -ignore '^invalid activity type "status_changed" for "issues" Webhook event'
 ~~~
 
 To roll back the workflow, disable TAKT_ENABLED, restore the saved PR/check

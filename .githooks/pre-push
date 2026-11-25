@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${TAKT_CHECKS_PASSED:-0}" == 1 ]]; then exit 0; fi
+cd "$(git rev-parse --show-toplevel)"
+exec ./scripts/check.sh quick

@@ -36,10 +36,12 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
 
-## Customer checkout (B18 / #52)
+## Local checks and Takt
 
-Customers open checkout from the cart, enter their name, phone and delivery address, and see a DKK total including VAT before choosing an approved or declined local payment simulation. A changed price updates the displayed order and requires a new explicit acceptance; unavailable dishes can be removed without losing delivery details. Payment and connection errors stay in the form.
+Use Node 24 (nvm use), Python 3.9+ and npm ci once after checkout.
+Run ./scripts/check.sh quick for lint, route types, TypeScript and tests,
+and ./scripts/check.sh verify to include the production build.
 
-Successful checkout clears the cart and opens `/customer/orders/{orderId}`. Reloading this URL reads the saved order through an authenticated GET, including the restaurant, current status, saved line prices and delivery details. It never submits checkout again.
-
-Run `npm test`, `npm run lint` and `npm run build`. The backend contract and failure codes are documented in `docs/customer-checkout-api.md` in the MTOGO backend repository. Local development uses the existing `/api` proxy; set `BACKEND_URL` before starting or building when the backend uses a different address.
+[Takt workflow](docs/takt-workflow.md) covers optional pre-push checks, issue-driven
+delivery, automatic image versions and elapsed time in In progress and Review.
+Automatic delivery stays disabled until the team reviews and activates it.

@@ -40,3 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .vs/
+
+# Local Takt state
+.tt_cache
+_temp.token
+__pycache__/
+release-plan.json

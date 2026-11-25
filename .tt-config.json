@@ -1,0 +1,29 @@
+{
+  "project": { "owner": "EmilXavierVT", "number": 7 },
+  "workon": {
+    "status": "In progress",
+    "default_type_labels": {
+      "title": "type:foundation",
+      "issue": "type:foundation"
+    }
+  },
+  "wrapup": { "policies": { "poll": false } },
+  "squeeze": {
+    "policies": {
+      "abort_for_rebase": true,
+      "allow-dirty": false,
+      "allow-staged": false
+    }
+  },
+  "deliver": {
+    "status": "Review",
+    "policies": { "branch_prefix": "ready", "poll": false }
+  },
+  "labels": {
+    "type:feature": { "color": "0e8a16", "description": "Product capability; minor image version", "category": "type" },
+    "type:foundation": { "color": "1d76db", "description": "Build, infrastructure or deployment; patch image version", "category": "type" },
+    "type:verification": { "color": "5319e7", "description": "Verification; patch image version", "category": "type" },
+    "type:process": { "color": "c5def5", "description": "Process or documentation; patch image version", "category": "type" },
+    "type:decision": { "color": "fef2c0", "description": "Decision implemented in this delivery; patch image version", "category": "type" }
+  }
+}

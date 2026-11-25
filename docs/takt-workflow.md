@@ -1,9 +1,13 @@
 # Local checks, Takt delivery and issue time
 
-This change is prepared for team review. Automatic Takt delivery and semantic image
-publication are **off until a maintainer enables TAKT_ENABLED**. The existing PR
-checks and main image publisher remain available during the transition. No server,
-credentials or branch rules are changed by checking out this branch.
+Automatic Takt delivery and issue-based image publication are controlled separately
+in each repository by the GitHub Actions variable `TAKT_ENABLED`. They are active
+only when its value is exactly `true`. Installing or merging the workflow files does
+not enable delivery; complete the maintainer cutover below to activate it.
+
+Before activation, use the existing PR workflow. After activation, `gh deliver`
+verifies and delivers an issue branch without a PR. Check the repository variable
+and main branch protection in GitHub when confirming which workflow is active.
 
 Tracking issue: [MTOGO #98](https://github.com/EmilXavierVT/MTOGO/issues/98);
 frontend implementation: [MTOGO-Front #9](https://github.com/EmilXavierVT/MTOGO-Front/issues/9).
@@ -154,17 +158,22 @@ digest is rejected. Weekly demo notes may select an existing automatic version.
 
 ## Maintainer cutover after team validation
 
-Do this separately in each repository; this PR does not execute these steps.
+Do this separately in each repository. Keep automatic delivery disabled until the
+prepared ready commit passes verification and the required settings are in place.
 
 1. Merge the reviewed bootstrap PR under the current PR rules. Run local quick/verify
    checks and the new CI. Keep a copy of the existing main protection settings.
 2. Run python3 scripts/takt.py setup-labels to create missing classification labels,
    preserving existing labels. Confirm the project's exact status names are
    In progress, Review and Done, and its closed-item workflow selects Done.
-3. Create a fine-grained PAT limited to these two repositories with Contents and
-   Workflows write access. Store it privately as READY_PUSHER in each repository
-   (gh secret set READY_PUSHER prompts without putting its value in a command).
-   The ordinary workflow token handles issue updates and artifact reads.
+3. Create a fine-grained PAT with resource owner EmilXavierVT, selecting only
+   MTOGO and MTOGO-Front, with Contents and Workflows write access. Metadata read
+   access is included automatically. Store it privately as READY_PUSHER in each
+   repository (`gh secret set READY_PUSHER` accepts hidden input). The token is used
+   for the verified main push so GitHub starts the image publication workflow;
+   ordinary GITHUB_TOKEN pushes do not trigger another push workflow. The ordinary
+   workflow token handles issue updates and artifact reads. Renew READY_PUSHER
+   before the chosen token expiration; keep its value out of commits and logs.
 4. Set TAKT_BASE_SHA to the full current main SHA at cutover. This excludes historical
    PR/merge commits without release plans. Leave it fixed afterwards.
 5. Prepare an issue/ready branch while delivery is disabled and verify that

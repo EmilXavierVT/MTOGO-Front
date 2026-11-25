@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { getRestaurants, getRestaurantMenus } from "../api";
 import MenuView from "./MenuView";
+import Checkout from "./Checkout";
 import styles from "./DisplayRestaurant.module.css";
 
 const priceFormat = new Intl.NumberFormat("da-DK", {
@@ -20,6 +21,7 @@ export default function DisplayRestaurant() {
   });
   const menuRequestId = useRef(0);
   const [cart, setCart] = useState([]);
+  const [checkingOut, setCheckingOut] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [cartError, setCartError] = useState("");
@@ -120,6 +122,21 @@ export default function DisplayRestaurant() {
   const selectedRestaurant = restaurants.find(
     (restaurant) => restaurant.id === selectedRestaurantId,
   );
+
+  if (checkingOut) {
+    return (
+      <Checkout
+        cart={cart}
+        restaurant={restaurants.find((restaurant) => restaurant.id === cart[0]?.restaurantId)}
+        onCartChange={setCart}
+        onBack={() => setCheckingOut(false)}
+        onComplete={() => {
+          emptyCart();
+          setCheckingOut(false);
+        }}
+      />
+    );
+  }
 
   return (
     <section className={styles.container} aria-label="Restaurants">
@@ -228,6 +245,13 @@ export default function DisplayRestaurant() {
                 <span>Total incl. VAT</span>
                 <span>{priceFormat.format(total)}</span>
               </p>
+              <button
+                type="button"
+                className={styles.checkoutButton}
+                onClick={() => setCheckingOut(true)}
+              >
+                Continue to checkout
+              </button>
               <button
                 type="button"
                 className={styles.emptyCartButton}

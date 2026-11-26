@@ -9,7 +9,8 @@ import OrderPage from "../app/(pages)/customer/orders/[orderId]/page";
 const { router, onComplete } = vi.hoisted(() => ({
   router: { push: vi.fn(), replace: vi.fn() }, onComplete: vi.fn(),
 }));
-vi.mock("next/navigation", () => ({ useRouter: () => router, useParams: () => ({ orderId: "order-1" }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => router, useParams: () => ({ orderId: "order-1" }),
+  usePathname: () => "/customer/orders/order-1" }));
 vi.mock("next/link", () => ({ default: ({ href, children, ...props }) => <a href={href} {...props}>{children}</a> }));
 
 const restaurant = { id: "r1", address: "Valby Langgade 1" };

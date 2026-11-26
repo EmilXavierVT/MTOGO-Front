@@ -48,3 +48,6 @@ Automatic delivery stays disabled until the team reviews and activates it.
 
 [Courier deliveries](docs/courier-deliveries.md) documents the courier screen,
 API dependency, error handling and focused UI checks.
+
+[Runtime capabilities](docs/feature-flags.md) documents the feature flag provider,
+backend contract, failure handling and future product flag enrollment.

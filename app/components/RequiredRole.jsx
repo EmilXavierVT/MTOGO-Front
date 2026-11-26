@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_BASE } from "../utils/api";
 import { ROLE_HOMEPAGE } from "../utils/roles";
+import { FeatureFlagsProvider } from "../features/FeatureFlagsProvider";
 
 function clearSession() {
   localStorage.removeItem("token");
@@ -12,10 +13,17 @@ function clearSession() {
 }
 
 function RequiredRole({ role, children }) {
-  const [allowed, setAllowed] = useState(false);
+  const [session, setSession] = useState(null);
   const router = useRouter();
 
+  const expireSession = useCallback(() => {
+    clearSession();
+    setSession(null);
+    router.replace("/auth/login");
+  }, [router]);
+
   useEffect(() => {
+    let disposed = false;
     const checkSession = async () => {
       const token =
         localStorage.getItem("token") || sessionStorage.getItem("token");
@@ -28,31 +36,37 @@ function RequiredRole({ role, children }) {
         const response = await fetch(`${API_BASE}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        if (disposed) return;
 
         if (response.status === 401) {
-          clearSession();
-          router.replace("/auth/login");
+          expireSession();
           return;
         }
 
+        if (!response.ok) throw new Error("Could not verify the session");
+
         const user = await response.json();
+        if (disposed) return;
 
         if (user.role !== role) {
           router.replace(ROLE_HOMEPAGE[user.role] ?? "/");
           return;
         }
 
-        setAllowed(true);
+        setSession({ token, role: user.role });
       } catch {
-        router.replace("/auth/login");
+        if (!disposed) router.replace("/auth/login");
       }
     };
 
     checkSession();
-  }, [role, router]);
+    return () => { disposed = true; };
+  }, [role, router, expireSession]);
 
-  if (!allowed) return <p>Loading...</p>;
-  return children;
+  if (session?.role !== role) return <p>Loading...</p>;
+  return <FeatureFlagsProvider token={session.token} onUnauthorized={expireSession}>
+    {children}
+  </FeatureFlagsProvider>;
 }
 
 export default RequiredRole;

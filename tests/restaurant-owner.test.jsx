@@ -7,7 +7,7 @@ const { replace, router } = vi.hoisted(() => {
   const replace = vi.fn();
   return { replace, router: { push: vi.fn(), replace } };
 });
-vi.mock("next/navigation", () => ({ useRouter: () => router }));
+vi.mock("next/navigation", () => ({ useRouter: () => router, usePathname: () => "/restaurant-owner" }));
 
 const dish = {
   id: "dish-1",
@@ -36,7 +36,8 @@ function mockOwnerRequests() {
   const fetch = vi.fn()
     .mockResolvedValueOnce(response({ role: "RESTAURANT_OWNER" }))
     .mockResolvedValueOnce(response(menus));
-  vi.stubGlobal("fetch", fetch);
+  vi.stubGlobal("fetch", vi.fn((url, options) => url === "/api/features"
+    ? Promise.resolve(response({})) : fetch(url, options)));
   return fetch;
 }
 

@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import CourierPage from "../app/(pages)/courier/page";
 
 const { router } = vi.hoisted(() => ({ router: { replace: vi.fn() } }));
-vi.mock("next/navigation", () => ({ useRouter: () => router }));
+vi.mock("next/navigation", () => ({ useRouter: () => router, usePathname: () => "/courier" }));
 
 const offer = {
   orderId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
@@ -27,6 +27,7 @@ function mockOverview(delivery = null, offers = [offer]) {
   const action = vi.fn();
   const fetch = vi.fn((url, options = {}) => {
     if (url === "/api/auth/me") return Promise.resolve(response({ role: "COURIER" }));
+    if (url === "/api/features") return Promise.resolve(response({}));
     if (url === "/api/courier/orders/available") return available();
     if (url === "/api/courier/delivery/active") return active();
     if (options.method === "POST") return action(url, options);

@@ -1,0 +1,45 @@
+name: Project Insights
+
+on:
+  issues:
+    types: [opened, closed, reopened, labeled, unlabeled]
+  workflow_run:
+    workflows: [Issue time, Ready]
+    types: [completed]
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: project-insights
+  queue: max
+
+jobs:
+  refresh:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      # Always execute trusted default-branch code, never the workflow_run head.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - name: Refresh issue metrics for the shared project
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          args=(--all --tracked-only)
+          if [[ -n "$ISSUE_NUMBER" ]]; then args=(--issue "$ISSUE_NUMBER"); fi
+          python3 scripts/project_insights.py "${args[@]}" --apply --output "$RUNNER_TEMP/project-insights.json"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: project-insights
+          path: ${{ runner.temp }}/project-insights.json
+          retention-days: 90
+          if-no-files-found: error

@@ -150,6 +150,10 @@ Reports are snapshots with an explicit as-of time. The timing log accepts only
 collaborator, member, owner or GitHub Actions bot comments. The workflow needs only
 its existing repository token and cannot deliver application code.
 
+[Project Insights](project-insights.md) exposes the recorded flow data as shared
+issue fields and project charts. Each repository refreshes its own measurements
+after timing/delivery workflows and daily; missing history remains explicit.
+
 Sources: [GitHub issue-status synchronization](https://docs.github.com/en/issues/tracking-your-work-with-issues/learning-about-issues/about-issue-statuses#syncing-statuses-with-projects),
 [status-change events](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/issue-status-webhooks-and-workflows).
 

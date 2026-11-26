@@ -38,7 +38,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## Local checks and Takt
 
-Use Node 24 (nvm use), Python 3.9+ and npm ci once after checkout.
+Use Node 24 (nvm use), Python 3.11+ and npm ci once after checkout.
 Run ./scripts/check.sh quick for lint, route types, TypeScript and tests,
 and ./scripts/check.sh verify to include the production build.
 

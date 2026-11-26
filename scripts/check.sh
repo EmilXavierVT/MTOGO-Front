@@ -6,7 +6,7 @@ if [[ "$#" -gt 1 || ( "$mode" != quick && "$mode" != verify ) ]]; then
   echo "Usage: ./scripts/check.sh [quick|verify]" >&2
   exit 2
 fi
-command -v python3 >/dev/null || { echo "Install Python 3.9+ (required by Takt)." >&2; exit 1; }
+command -v python3 >/dev/null || { echo "Install Python 3.11+ (required by Takt)." >&2; exit 1; }
 python3 -m unittest discover -s scripts/tests -v
 if [[ -f pom.xml ]]; then
   if [[ "$(uname -s)" == Darwin ]]; then

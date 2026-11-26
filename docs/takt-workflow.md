@@ -14,11 +14,15 @@ frontend implementation: [MTOGO-Front #9](https://github.com/EmilXavierVT/MTOGO-
 
 ## Check locally
 
-Use Java 17 for the backend, Node 24 for the frontend, and Python 3.9+ for the
+Use Java 17 for the backend, Node 24 for the frontend, and Python 3.11+ for the
 delivery tools. Maven Wrapper pins Maven 3.9.16. On macOS the check script selects
 Java 17 with java_home; on Linux/WSL set JAVA_HOME or put Java 17 on PATH.
 On Windows, run the shell tools inside WSL. Install gh, Git and the runtime inside
 that same environment.
+
+The Python minimum comes from the pinned
+[gh-tt extension](https://github.com/devx-cafe/gh-tt/blob/84b3b74a79dd4907812cb02e59b2b048ce6e4c3e/pyproject.toml#L5).
+Check `python3 --version` before running `./scripts/setup-local.sh`.
 
 In the frontend, select Node 24 (nvm use) and run npm ci once. Repeat npm ci after
 package-lock.json changes, not before every check.

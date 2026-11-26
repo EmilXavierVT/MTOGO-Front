@@ -45,3 +45,6 @@ and ./scripts/check.sh verify to include the production build.
 [Takt workflow](docs/takt-workflow.md) covers optional pre-push checks, issue-driven
 delivery, automatic image versions and elapsed time in In progress and Review.
 Automatic delivery stays disabled until the team reviews and activates it.
+
+[Courier deliveries](docs/courier-deliveries.md) documents the courier screen,
+API dependency, error handling and focused UI checks.

@@ -42,14 +42,14 @@ afterEach(() => {
 });
 
 describe("Runtime feature capabilities", () => {
-  it("uses an empty production allowlist and defaults off outside a provider", async () => {
-    expect(PUBLIC_CAPABILITY_NAMES).toEqual([]);
+  it("explicitly enrolls customer feedback and defaults off outside a provider", async () => {
+    expect(PUBLIC_CAPABILITY_NAMES).toEqual(["customerFeedback"]);
     render(<Controls />);
     expect(screen.getByRole("button", { name: "Future action" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Existing action" })).toBeEnabled();
   });
 
-  it("ignores all backend flags until a product capability is enrolled in the production allowlist", async () => {
+  it("ignores backend flags that are not enrolled in the production allowlist", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response({ testCapability: true, unknownCapability: true })));
     render(<FeatureFlagsProvider token="test-token" onUnauthorized={expired}><Controls /></FeatureFlagsProvider>);
     await act(async () => {});

@@ -4,8 +4,9 @@ Frontend [#17](https://github.com/EmilXavierVT/MTOGO-Front/issues/17) integrates
 [backend foundation](https://github.com/EmilXavierVT/MTOGO/issues/112) from
 [research #111](https://github.com/EmilXavierVT/MTOGO/issues/111).
 
-**No product capability is enrolled, and no existing feature is gated.** The first product
-flag and its backend guard, UI and enabled demonstration require a separate issue.
+[Customer feedback](customer-feedback.md) is the first enrolled product capability:
+`customerFeedback`, default OFF, backed by `MTOGO_FEATURE_CUSTOMER_FEEDBACK` in MTOGO #60.
+Existing checkout, orders and courier completion remain available in either state.
 
 ## Current behavior
 
@@ -14,9 +15,9 @@ flag and its backend guard, UI and enabled demonstration require a separate issu
 The provider fetches `GET /api/features` through the same-origin `/api` convention,
 with the session Bearer token and `cache: "no-store"`. The backend allows all existing
 roles and returns an allowlisted JSON object of Booleans with `Cache-Control: no-store`.
-The initial production response is `{}`.
+The application response includes `{"customerFeedback":false}` by default.
 
-`app/features/catalog.ts` contains the explicit client allowlist, currently empty.
+`app/features/catalog.ts` contains the explicit client allowlist, including `customerFeedback`.
 Only an own property whose value is exactly Boolean `true` for a recognized name enables
 a capability. Unknown/missing/non-Boolean values and malformed data are off. Older-backend
 403/404 responses, 5xx responses, network/JSON failures and a five-second timeout leave
@@ -28,7 +29,7 @@ aborted and cannot restore an earlier session's or route's capabilities. Values 
 persisted between sessions. There is no polling or instant update promise for an open
 view; enter the view again after a backend configuration change.
 
-## Enrolling a product capability later
+## Enrolling another product capability
 
 1. Create linked feature issues and follow Takt in each repository. Define the owner,
    default-off behavior and removal condition.
@@ -54,8 +55,11 @@ new client capability names.
 
 ## Verification
 
+`useSessionExpiry()` lets a product API's 401 invoke the same `RequiredRole` cleanup and
+remove the entire private view. Feedback uses it for reads and submissions.
+
 Run `./scripts/check.sh quick` and use `gh deliver` for full verification. Tests cover on/off
-fixtures, the empty production allowlist, old/malformed backend responses, timeout, stale
+fixtures, the explicit production allowlist, old/malformed backend responses, timeout, stale
 requests, route/token changes, cancellation, session expiry and existing content during
 capability failures. Existing checkout, menu and courier tests cover unflagged behavior;
 the production build checks the Next.js client boundary and routing integration.

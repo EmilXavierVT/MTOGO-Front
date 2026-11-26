@@ -5,12 +5,14 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import RequiredRole from "../../../components/RequiredRole";
 import { getOrder } from "../ordersApi";
+import CustomerFeedback from "./CustomerFeedback";
 import styles from "./order.module.css";
 
 const money = new Intl.NumberFormat("da-DK", { style: "currency", currency: "DKK" });
 const statuses = {
   PENDING: "Awaiting restaurant",
   ACCEPTED: "Accepted by restaurant",
+  READY_FOR_DELIVERY: "Ready for delivery",
   REJECTED: "Rejected by restaurant",
   UNDER_DELIVERY: "Out for delivery",
   DELIVERED: "Delivered",
@@ -70,6 +72,7 @@ function SavedOrder({ orderId }) {
       <p>{order.customerPhone}</p>
       <p className={styles.address}>{order.deliveryAddress}</p>
       <p className={styles.note}>These are the details and prices saved with your order.</p>
+      <CustomerFeedback order={order} />
       <Link className={styles.secondaryButton} href="/customer">Back to restaurants</Link>
     </section>
   );

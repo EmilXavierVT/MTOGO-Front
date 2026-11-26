@@ -8,6 +8,7 @@ import { PUBLIC_CAPABILITY_NAMES } from "./catalog";
 type Capabilities = Readonly<Record<string, boolean>>;
 const DISABLED: Capabilities = Object.freeze({});
 const FeatureFlagsContext = createContext<Capabilities>(DISABLED);
+const SessionExpiryContext = createContext<() => void>(() => {});
 
 type Props = {
   token: string;
@@ -80,10 +81,17 @@ export function FeatureFlagsProvider({ token, children, onUnauthorized,
 
   // A prior route/session must not enable controls while its replacement request is pending.
   const values = snapshot?.request === request ? snapshot.values : DISABLED;
-  return <FeatureFlagsContext.Provider value={values}>{children}</FeatureFlagsContext.Provider>;
+  return <SessionExpiryContext.Provider value={onUnauthorized}>
+    <FeatureFlagsContext.Provider value={values}>{children}</FeatureFlagsContext.Provider>
+  </SessionExpiryContext.Provider>;
 }
 
 export function useFeature(name: string): boolean {
   const values = useContext(FeatureFlagsContext);
   return Object.hasOwn(values, name) && values[name] === true;
+}
+
+/** Let a product API's 401 use RequiredRole's existing session cleanup and content removal. */
+export function useSessionExpiry(): () => void {
+  return useContext(SessionExpiryContext);
 }
